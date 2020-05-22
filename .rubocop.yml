@@ -1,0 +1,24 @@
+inherit_gem:
+  paydici-rubocop:
+    - default.yml
+
+AllCops:
+  Exclude:
+    - 'app/views/**/*'
+    - 'db/migrate/*.rb'
+    - 'db/schema.rb'
+    - 'lib/capistrano/**/*'
+    - 'lib/generators/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - '*' # this ignores anything root level like Gemfile/Rakefile
+
+##################################
+##### PROJECT SPECIFIC RULES #####
+##################################
+
+Style/SymbolArray:
+  EnforcedStyle: percent
+  Exclude:
+    - 'config/routes.rb'
+    - 'app/controllers/**/*'
