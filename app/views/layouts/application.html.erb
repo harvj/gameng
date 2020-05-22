@@ -6,10 +6,15 @@
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag 'application', media: 'all' %>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
     <%= javascript_pack_tag 'application' %>
+    <%= javascript_pack_tag 'gameng' %>
   </head>
 
   <body>
-    <%= yield %>
+    <div id='gameng' class='container'>
+      <%= yield %>
+    </div>
   </body>
 </html>
