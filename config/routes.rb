@@ -3,9 +3,13 @@ Rails.application.routes.draw do
 
   # --- Users / Devise
 
-  devise_for :user
+  devise_for :users, controllers: {
+    sessions: 'users/sessions'
+  }
+
   devise_scope :user do
-    get '/login'     => 'devise/sessions#new', as: :login
-    delete '/logout' => 'devise/sessions#destroy', as: :logout
+    get '/login'     => 'users/sessions#new', as: :login
+    post 'login'     => 'users/sessions#create'
+    delete '/logout' => 'users/sessions#destroy', as: :logout
   end
 end

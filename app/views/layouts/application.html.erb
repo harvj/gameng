@@ -14,6 +14,7 @@
 
   <body>
     <div id='gameng' class='container'>
+      <common-data :common-data="<%= @common_data.to_json %>"></common-data>
       <flash rails-messages="<%= (flash.to_hash || {}).to_json %>"></flash>
       <%= yield %>
     </div>

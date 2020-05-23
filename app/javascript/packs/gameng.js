@@ -1,16 +1,21 @@
 /* eslint no-console: 0 */
+import store from '../vuex/store'
 
 import Vue from 'vue/dist/vue.esm'
 
-import App from '../components/app.vue'
+import CommonData from '../components/CommonData.vue'
 import Flash from '../components/Flash.vue'
+import LandingPage from '../components/LandingPage.vue'
 
 document.addEventListener('DOMContentLoaded', () => {
   const gameng = new Vue({
     el: '#gameng',
     components: {
-      App,
-      Flash
-    }
+      CommonData,
+      Flash,
+      LandingPage
+    },
+
+    store
   })
 })
