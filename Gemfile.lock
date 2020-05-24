@@ -77,6 +77,7 @@ GEM
       activesupport (>= 4.2.0)
     i18n (1.8.2)
       concurrent-ruby (~> 1.0)
+    immutable-struct (2.4.1)
     listen (3.2.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
@@ -208,6 +209,7 @@ PLATFORMS
 DEPENDENCIES
   bootsnap (>= 1.4.2)
   devise
+  immutable-struct
   listen (~> 3.2)
   paydici-rubocop
   pg (>= 0.18, < 2.0)
