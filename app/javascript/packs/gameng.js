@@ -5,6 +5,9 @@ import Vue from 'vue/dist/vue.esm'
 
 import CommonData from '../components/CommonData.vue'
 import Flash from '../components/Flash.vue'
+import Game from '../components/Game.vue'
+import GamesIndex from '../components/GamesIndex.vue'
+import GameSession from '../components/GameSession.vue'
 import LandingPage from '../components/LandingPage.vue'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     components: {
       CommonData,
       Flash,
+      Game,
+      GamesIndex,
+      GameSession,
       LandingPage
     },
 

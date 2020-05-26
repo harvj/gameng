@@ -1,12 +1,18 @@
 class GameSession < ApplicationRecord
+  BEGIN_STATES = %i(waiting started)
+  END_STATES   = %i(completed)
+
   belongs_to :game
   has_many :players, dependent: :destroy
-  has_many :users, through: :players
 
   has_many :decks, class_name: 'SessionDeck', dependent: :destroy
 
   def start!
-    self.update_attribute(:state, 'started')
+    self.update_attribute(:started_at, Time.zone.now)
+  end
+
+  def started?
+    started_at.present?
   end
 
   def find_players(count=4)
@@ -14,6 +20,5 @@ class GameSession < ApplicationRecord
     users.each do |user|
       players.create(user_id: user.id)
     end
-    start!
   end
 end

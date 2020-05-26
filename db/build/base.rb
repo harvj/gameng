@@ -4,11 +4,12 @@ module GameBuild
 
     USER_PASSWORD = 'foobar'.freeze
     DEFAULT_USERS = [
-      { name: 'rAdio',           email: 'jimrharvey@gmail.com' },
-      { name: 'Ken Griffey Jr.', email: 'jr@griffey.com' },
-      { name: 'Herbie Hancock',  email: 'herbie@hancock.com' },
-      { name: 'Michael Jordan',  email: 'jordan@bulls.com' },
-      { name: 'Kate Bush',       email: 'kate@bush.com' }
+      { name: 'Jim',    email: 'jimrharvey@gmail.com' },
+      { name: 'Mariah', email: 'mariah@gameng.com' },
+      { name: 'Herbie', email: 'herbie@gameng.com' },
+      { name: 'Dame',   email: 'dame@gameng.com' },
+      { name: 'Nas',    email: 'nas@gameng.com' },
+      { name: 'Janet',  email: 'janet@gameng.com'}
     ].freeze
 
     def call

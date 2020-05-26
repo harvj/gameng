@@ -40,5 +40,9 @@ module Representers
         { label: option.humanize.capitalize, value: option }
       end
     end
+
+    def scalar_only?
+      options[:scalar] == true
+    end
   end
 end

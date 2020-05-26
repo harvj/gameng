@@ -1,0 +1,12 @@
+@import 'variables';
+
+a {
+  color: $text-color;
+  font-weight: 500;
+
+  &:hover {
+    color: white;
+    background-color: $text-color;
+    text-decoration: none;
+  }
+}

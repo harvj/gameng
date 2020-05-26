@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
-  root 'base#index'
+  root 'games#index'
 
-  # --- Users / Devise
+  resources :games, only: %i(index)
+  resources :game_sessions, only: %i(create)
 
   devise_for :users, controllers: {
     sessions: 'users/sessions'
@@ -12,4 +13,8 @@ Rails.application.routes.draw do
     post 'login'     => 'users/sessions#create'
     delete '/logout' => 'users/sessions#destroy', as: :logout
   end
+
+  get 'sessions/:uid' => 'game_sessions#show', as: :game_session
+
+  get ':slug' => 'games#show', as: :game
 end
