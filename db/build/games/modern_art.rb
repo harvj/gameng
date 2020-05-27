@@ -16,7 +16,7 @@ class GameBuild::ModernArt < GameBuild::Base
     game = create_game(name: 'Modern Art', slug: 'modern_art')
 
     %w(lite_metal yoko cristin_p karl_gitter krypto).each_with_index do |name, i|
-      %w(double open sealed once_around fixed).each_with_index do |value, j|
+      %w(double sealed open once_around fixed).each_with_index do |value, j|
         create_card(
           game_id: game.id,
           name: name,

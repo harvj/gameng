@@ -2,14 +2,17 @@ module GameBuild
   class Base
     include ServiceObject
 
-    USER_PASSWORD = 'foobar'.freeze
+    USER_PASSWORD = 'gitter'.freeze
+
     DEFAULT_USERS = [
-      { name: 'Jim',    email: 'jimrharvey@gmail.com' },
-      { name: 'Mariah', email: 'mariah@gameng.com' },
-      { name: 'Herbie', email: 'herbie@gameng.com' },
-      { name: 'Dame',   email: 'dame@gameng.com' },
-      { name: 'Nas',    email: 'nas@gameng.com' },
-      { name: 'Janet',  email: 'janet@gameng.com'}
+      { name: 'Jim Harvey',       username: 'radio' },
+      { name: 'Paul Harvey',      username: 'paul' },
+      { name: 'Bob McMurray',     username: 'bob' },
+      { name: 'Robert McMurray',  username: 'robert' },
+      { name: 'AJ Stoll',         username: 'aj' },
+      { name: 'Nolan Harvey',     username: 'nolan'},
+      { name: 'Mark McMurray',    username: 'mark' },
+      { name: 'Chris Nelsen',     username: 'chris'},
     ].freeze
 
     def call
@@ -21,7 +24,7 @@ module GameBuild
 
     def create_users
       DEFAULT_USERS.each do |params|
-        next if User.find_by(email: params[:email]).present?
+        next if User.find_by(username: params[:username]).present?
         log("building User: #{params}")
         User.create(params.merge(password: USER_PASSWORD))
       end

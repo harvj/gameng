@@ -18,9 +18,11 @@ module Representers
 
     def build_paths
       {
+        gamesPath: games_path,
         gameSessionsPath: game_sessions_path,
         loginPath: login_path,
-        logoutPath: logout_path
+        logoutPath: logout_path,
+        playersPath: players_path
       }
     end
   end

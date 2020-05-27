@@ -1,6 +1,6 @@
 <template>
   <div id="games-index">
-    <h2>Which game?</h2>
+    <h2>What are we playing?</h2>
     <div
       v-for="game in games"
       :key="game.slug"

@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   resources :games, only: %i(index)
   resources :game_sessions, only: %i(create)
+  resources :players, only: %i(create)
 
   devise_for :users, controllers: {
     sessions: 'users/sessions'
@@ -15,6 +16,8 @@ Rails.application.routes.draw do
   end
 
   get 'sessions/:uid' => 'game_sessions#show', as: :game_session
+  patch 'sessions/:uid' => 'game_sessions#update'
+  delete 'sessions/:uid' => 'game_sessions#destroy'
 
   get ':slug' => 'games#show', as: :game
 end

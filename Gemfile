@@ -12,6 +12,7 @@ gem 'webpacker', '~> 4.0'
 
 gem 'devise'
 gem 'immutable-struct'
+gem 'passphrase'
 
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 4.0'

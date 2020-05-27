@@ -101,6 +101,8 @@ GEM
     parallel (1.19.1)
     parser (2.7.1.2)
       ast (~> 2.4.0)
+    passphrase (1.2.1)
+      sqlite3 (~> 1.0)
     paydici-rubocop (0.2.2)
       rubocop (= 0.53.0)
       rubocop-rspec (= 1.26.0)
@@ -181,6 +183,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
+    sqlite3 (1.4.2)
     thor (1.0.1)
     thread_safe (0.3.6)
     tilt (2.0.10)
@@ -211,6 +214,7 @@ DEPENDENCIES
   devise
   immutable-struct
   listen (~> 3.2)
+  passphrase
   paydici-rubocop
   pg (>= 0.18, < 2.0)
   pry

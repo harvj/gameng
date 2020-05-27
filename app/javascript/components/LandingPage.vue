@@ -2,7 +2,7 @@
   <div id="landing-page">
     <h1>GameNG</h1>
     <div v-if="loggedIn">
-      <p>Let's play some Modern Art, {{ this.currentUser.email }}!</p>
+      <p>Let's play some Modern Art, {{ this.currentUser.username }}!</p>
       <a :href="paths.logoutPath" data-method="delete" rel="nofollow">Logout</a>
     </div>
     <div v-else>

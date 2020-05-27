@@ -1,27 +1,37 @@
 module Representers
   class GameSession < Representers::Base
-    attr_reader :session
+    attr_reader :session, :config
 
     def build_object(session)
       @session = session
+      @config = session.game_class.new(session)
       {
-        game: Representers::Game.(session.game, scalar: true),
         uid: session.uid,
-        state: session.state,
-        started_at: session.started_at&.strftime('%a %e %b, %Y %k:%M:%S'),
-        ended_at: session.ended_at,
-        players: players,
-        decks: decks
+        state: session_state,
+        startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
+        endedAt: session.ended_at&.strftime('%a %e %b %Y %k:%M:%S'),
+        uri: game_session_path(session.uid),
+        game: Representers::Game.(session.game, scalar: true),
+        players: Representers::Player.(session.players, session: session),
+        decks: decks,
+        config: rep_config
       }
     end
 
-    def players
-      session.players.map do |player|
-        {
-          name: player.user.name,
-          cards: player_cards(player)
-        }
+    def session_state
+      if session.waiting?
+        config.playable? ? 'Ready to begin': 'Waiting for players...'
+      else
+        session.state.titleize
       end
+    end
+
+    def rep_config
+      {
+        joinable: config.joinable?,
+        playable: config.playable?,
+        nextActionText: config.next_action_text[config.next_action&.to_sym]
+      }
     end
 
     def decks
@@ -29,20 +39,6 @@ module Representers
         {
           slug: deck.slug,
           card_count: deck.cards.count
-        }
-      end
-    end
-
-    def player_cards(player)
-      deck = session.decks.first
-      deck.cards.where(player_id: player.id).map do |session_card|
-        card = session_card.card
-        {
-          name: card.name.titleize,
-          value: card.value,
-          color: card.color,
-          iconClass: card.icon_class,
-          sort: card.game_logical_sort
         }
       end
     end

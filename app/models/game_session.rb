@@ -15,10 +15,19 @@ class GameSession < ApplicationRecord
     started_at.present?
   end
 
-  def find_players(count=4)
-    users = User.limit(count)
-    users.each do |user|
-      players.create(user_id: user.id)
-    end
+  def complete!
+    self.update_attribute(:ended_at, Time.zone.now)
+  end
+
+  def completed?
+    ended_at.present?
+  end
+
+  def waiting?
+    state == 'waiting'
+  end
+
+  def game_class
+    "Play::#{game.slug.classify}".safe_constantize
   end
 end

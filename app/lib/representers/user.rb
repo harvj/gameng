@@ -2,7 +2,8 @@ module Representers
   class User < Representers::Base
     def build_object(user)
       {
-        email: user.email
+        name: user.name,
+        username: user.username
       }
     end
   end

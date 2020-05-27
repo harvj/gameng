@@ -23,7 +23,7 @@ module Representers
           state: session.state.titleize,
           uid: session.uid,
           started: session.started?,
-          showPath: game_session_path(session.uid)
+          uri: game_session_path(session.uid)
         }
       end
     end

@@ -21,6 +21,7 @@ Bundler.require(*Rails.groups)
 
 module Gameng
   class Application < Rails::Application
+    config.time_zone = 'Pacific Time (US & Canada)'
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
 
