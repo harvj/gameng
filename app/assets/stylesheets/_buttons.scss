@@ -2,24 +2,24 @@
 
 .btn-primary {
   &.light-brown {
-    color: darken($light-brown, 20);
-    border-color: darken($light-brown, 20);
+    color: darken($light-brown, 50);
+    border-color: darken($light-brown, 50);
     background-color: lighten($light-brown, 20);
   }
   &.dark-pink {
     color: darken($dark-pink, 20);
     border-color: darken($dark-pink, 20);
-    background-color: lighten($dark-pink, 20);
+    background-color: lighten($dark-pink, 30);
   }
   &.yellow {
-    color: darken($yellow, 20);
-    border-color: darken($yellow, 20);
-    background-color: lighten($yellow, 20);
+    color: darken($yellow, 25);
+    border-color: darken($yellow, 25);
+    background-color: lighten($yellow, 30);
   }
   &.light-green {
-    color: darken($light-green, 20);
+    color: darken($light-green, 30);
     border-color: darken($light-green, 30);
-    background-color: lighten($light-green, 30);
+    background-color: lighten($light-green, 25);
   }
   &.light-purple {
     color: darken($light-purple, 20);

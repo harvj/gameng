@@ -27,8 +27,8 @@
           <tr>
             <td>players:</td>
             <td>
-              <div class="d-flex flex-row">
-                <div v-for="player in session.players" class="p-2 mr-2 bg-light">
+              <div class="d-flex flex-row flex-wrap">
+                <div v-for="player in session.players" class="p-2 mr-2 mb-2 bg-light">
                   {{ player.user.name }}
                 </div>
               </div>
