@@ -1,13 +1,10 @@
 Rails.application.routes.draw do
   root 'games#index'
 
-  resources :games, only: %i(index)
   resources :game_sessions, only: %i(create)
   resources :players, only: %i(create)
 
-  devise_for :users, controllers: {
-    sessions: 'users/sessions'
-  }
+  devise_for :users, controllers: { sessions: 'users/sessions' }
 
   devise_scope :user do
     get '/login'     => 'users/sessions#new', as: :login

@@ -1,4 +1,4 @@
-class GameSessionsController < BaseController
+class GameSessionsController < ApplicationController
   before_action :load_game_session, only: %i(update show destroy)
 
   def create
@@ -31,6 +31,6 @@ class GameSessionsController < BaseController
   private
 
   def load_game_session
-    @game_session = GameSession.find_by(uid: params[:uid])
+    @game_session = GameSession.find_by(uid: params[:uid]) || not_found
   end
 end

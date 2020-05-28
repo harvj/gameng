@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>GameNG</title>
+    <title>games.qalep.co</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -9,12 +9,12 @@
     <%= stylesheet_link_tag 'application', media: 'all' %>
 
     <%= javascript_pack_tag 'application' %>
-    <%= javascript_pack_tag 'gameng' %>
+    <%= javascript_pack_tag 'games' %>
     <script src="https://kit.fontawesome.com/c8fac941ce.js" crossorigin="anonymous"></script>
   </head>
 
   <body>
-    <div id='gameng' class='container'>
+    <div id='games' class='container'>
       <% if @common_data.present? %>
         <common-data :common-data="<%= @common_data.to_json %>"></common-data>
       <% end %>

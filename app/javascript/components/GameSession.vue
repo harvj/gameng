@@ -35,7 +35,7 @@
             </td>
           </tr>
           <tr v-if="session.completed">
-            <td>completed:</td><td>{{ session.endedAt }}</td>
+            <td>completed:</td><td>{{ session.completedAt }}</td>
           </tr>
           <tr v-else>
             <td>status:</td><td>{{ session.state }}</td>

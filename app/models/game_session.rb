@@ -23,11 +23,11 @@ class GameSession < ApplicationRecord
   end
 
   def complete!
-    self.update_attribute(:ended_at, Time.zone.now)
+    self.update_attribute(:completed_at, Time.zone.now)
   end
 
   def completed?
-    ended_at.present?
+    completed_at.present?
   end
 
   def waiting?

@@ -1,17 +1,27 @@
-class GamesController < BaseController
+class GamesController < ApplicationController
+  before_action :load_game, only: %i(show)
+
   def index
-    @games = Representers::Game.(Game.all)
+    games = Game.all
+
+    @rep_games = Representers::Game.(games)
     respond_to do |format|
       format.html
-      format.json { render json: { status: 'success', content: { games: @games }}.to_json }
+      format.json { render json: { status: 'success', content: { games: @rep_games }}.to_json }
     end
   end
 
   def show
-    @game = Representers::Game.(Game.find_by(slug: params[:slug]))
+    @rep_game = Representers::Game.()
     respond_to do |format|
       format.html
-      format.json { render json: { status: 'success', content: { game: @game }}.to_json }
+      format.json { render json: { status: 'success', content: { game: @rep_game }}.to_json }
     end
+  end
+
+  private
+
+  def load_game
+    @game = Game.find_by(slug: params[:slug]) || not_found
   end
 end

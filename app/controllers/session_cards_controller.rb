@@ -1,4 +1,4 @@
-class SessionCardsController < BaseController
+class SessionCardsController < ApplicationController
   def discard
   end
 

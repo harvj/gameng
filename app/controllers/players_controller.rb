@@ -1,4 +1,4 @@
-class PlayersController < BaseController
+class PlayersController < ApplicationController
   def create
     @game_session = GameSession.find_by(uid: params[:uid])
     @game_session.players.create(user_id: current_user.id)
