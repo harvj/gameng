@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_27_071902) do
+ActiveRecord::Schema.define(version: 2020_05_28_063645) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -24,16 +24,19 @@ ActiveRecord::Schema.define(version: 2020_05_27_071902) do
     t.string "color"
     t.string "icon_class"
     t.integer "game_logical_sort"
+    t.index ["game_id"], name: "index_cards_on_game_id"
   end
 
   create_table "game_sessions", force: :cascade do |t|
     t.integer "game_id"
     t.string "uid"
     t.datetime "started_at"
-    t.datetime "ended_at"
+    t.datetime "completed_at"
     t.string "state"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["game_id"], name: "index_game_sessions_on_game_id"
+    t.index ["uid"], name: "index_game_sessions_on_uid", unique: true
   end
 
   create_table "games", force: :cascade do |t|
@@ -41,11 +44,16 @@ ActiveRecord::Schema.define(version: 2020_05_27_071902) do
     t.string "slug"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["slug"], name: "index_games_on_slug", unique: true
   end
 
   create_table "players", force: :cascade do |t|
     t.integer "user_id"
     t.integer "game_session_id"
+    t.boolean "moderator", default: false
+    t.integer "score"
+    t.index ["game_session_id"], name: "index_players_on_game_session_id"
+    t.index ["user_id"], name: "index_players_on_user_id"
   end
 
   create_table "session_cards", force: :cascade do |t|
@@ -57,6 +65,11 @@ ActiveRecord::Schema.define(version: 2020_05_27_071902) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.datetime "dealt_at"
+    t.integer "game_session_id"
+    t.index ["card_id"], name: "index_session_cards_on_card_id"
+    t.index ["game_session_id"], name: "index_session_cards_on_game_session_id"
+    t.index ["player_id"], name: "index_session_cards_on_player_id"
+    t.index ["session_deck_id"], name: "index_session_cards_on_session_deck_id"
   end
 
   create_table "session_decks", force: :cascade do |t|
@@ -64,6 +77,27 @@ ActiveRecord::Schema.define(version: 2020_05_27_071902) do
     t.string "slug"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["game_session_id", "slug"], name: "index_session_decks_on_game_session_id_and_slug", unique: true
+    t.index ["game_session_id"], name: "index_session_decks_on_game_session_id"
+  end
+
+  create_table "session_frames", force: :cascade do |t|
+    t.integer "game_session_id"
+    t.string "action"
+    t.integer "active_player_id"
+    t.integer "affected_played_id"
+    t.integer "value"
+    t.string "result"
+    t.integer "subject_id"
+    t.string "subject_type"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["action"], name: "index_session_frames_on_action"
+    t.index ["active_player_id"], name: "index_session_frames_on_active_player_id"
+    t.index ["affected_played_id"], name: "index_session_frames_on_affected_played_id"
+    t.index ["game_session_id", "action"], name: "index_session_frames_on_game_session_id_and_action"
+    t.index ["game_session_id"], name: "index_session_frames_on_game_session_id"
+    t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type", unique: true
   end
 
   create_table "users", force: :cascade do |t|

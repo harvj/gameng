@@ -8,7 +8,9 @@ module Representers
       {
         uid: session.uid,
         state: session_state,
+        started: session.started_at.present?,
         startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
+        completed: session.ended_at.present?,
         endedAt: session.ended_at&.strftime('%a %e %b %Y %k:%M:%S'),
         uri: game_session_path(session.uid),
         game: Representers::Game.(session.game, scalar: true),

@@ -30,7 +30,9 @@ module Representers
           value: card.value,
           color: card.color,
           iconClass: card.icon_class,
-          sort: card.game_logical_sort
+          sort: card.game_logical_sort,
+          dealtAt: session_card.dealt_at_micro,
+          playedAt: session_card.played_at_micro
         }
       end
     end

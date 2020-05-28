@@ -3,9 +3,16 @@ class GameSession < ApplicationRecord
   END_STATES   = %i(completed)
 
   belongs_to :game
-  has_many :players, dependent: :destroy
 
+  has_many :players, dependent: :destroy
   has_many :decks, class_name: 'SessionDeck', dependent: :destroy
+
+  validates :uid, presence: true, uniqueness: true
+  validates :state, presence: true
+
+  def self.generate_uid
+    Passphrase::Passphrase.new(number_of_words: 4).passphrase.tr(' ','-')
+  end
 
   def start!
     self.update_attribute(:started_at, Time.zone.now)

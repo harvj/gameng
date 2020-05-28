@@ -5,25 +5,64 @@
     color: darken($light-brown, 50);
     border-color: darken($light-brown, 50);
     background-color: lighten($light-brown, 20);
+    &:hover {
+      background-color: lighten($light-brown, 10);
+    }
+    &:active {
+      background-color: $light-brown !important;
+      border-color: darken($light-brown, 5) !important;
+    }
   }
+
   &.dark-pink {
     color: darken($dark-pink, 20);
     border-color: darken($dark-pink, 20);
-    background-color: lighten($dark-pink, 30);
+    background-color: lighten($dark-pink, 35);
+    &:hover {
+      background-color: lighten($dark-pink, 30);
+    }
+    &:active {
+      background-color: $dark-pink !important;
+      border-color: darken($dark-pink, 5) !important;
+    }
   }
+
   &.yellow {
     color: darken($yellow, 25);
     border-color: darken($yellow, 25);
     background-color: lighten($yellow, 30);
+    &:hover {
+      background-color: lighten($yellow, 20);
+    }
+    &:active {
+      background-color: $yellow !important;
+      border-color: darken($yellow, 5) !important;
+    }
   }
+
   &.light-green {
     color: darken($light-green, 30);
     border-color: darken($light-green, 30);
     background-color: lighten($light-green, 25);
+    &:hover {
+      background-color: lighten($light-green, 30);
+    }
+    &:active {
+      background-color: $light-green !important;
+      border-color: darken($light-green, 5) !important;
+    }
   }
+
   &.light-purple {
     color: darken($light-purple, 20);
     border-color: darken($light-purple, 20);
     background-color: lighten($light-purple, 10);
+    &:hover {
+      background-color: lighten($light-purple, 5);
+    }
+    &:active {
+      background-color: $light-purple !important;
+      border-color: darken($light-purple, 5) !important;
+    }
   }
 }
