@@ -1,46 +1,16 @@
 module Representers
   class Player < Representers::Base
     def build_object(player)
-      @player = player
-      @session = options[:session]
-
-      result = {
+      scalar = {
+        id: player.id,
+        moderator: player.moderator?,
         user: Representers::User.(player.user)
       }
+      return scalar if scalar_only?
 
-      result.merge!(session_info) if session.present?
-
-      result
-    end
-
-    attr_reader :player, :session
-
-    private
-
-    def session_deck
-      session.decks.first
-    end
-
-    def session_cards
-      return [] unless session_deck.present?
-      session_deck.cards.where(player_id: player.id).map do |session_card|
-        card = session_card.card
-        {
-          name: card.name.titleize,
-          value: card.value,
-          color: card.color,
-          iconClass: card.icon_class,
-          sort: card.game_logical_sort,
-          dealtAt: session_card.dealt_at_micro,
-          playedAt: session_card.played_at_micro
-        }
-      end
-    end
-
-    def session_info
-      {
-        cards: session_cards
-      }
+      scalar.merge(
+        cards: Representers::SessionCard.(player.cards)
+      )
     end
   end
 end

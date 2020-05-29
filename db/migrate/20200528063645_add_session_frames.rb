@@ -13,10 +13,14 @@ class AddSessionFrames < ActiveRecord::Migration[6.0]
     add_index :games, :slug, unique: true
     add_index :players, :user_id
     add_index :players, :game_session_id
+    add_index :players, [:game_session_id, :user_id], unique: true
     add_index :session_cards, :game_session_id
     add_index :session_cards, :session_deck_id
     add_index :session_cards, :card_id
     add_index :session_cards, :player_id
+    add_index :session_cards, [:player_id, :game_session_id]
+    add_index :session_cards, [:player_id, :session_deck_id]
+    add_index :session_cards, [:game_session_id, :session_deck_id]
     add_index :session_decks, :game_session_id
     add_index :session_decks, [:game_session_id, :slug], unique: true
 
@@ -29,7 +33,7 @@ class AddSessionFrames < ActiveRecord::Migration[6.0]
       t.string :result
       t.integer :subject_id
       t.string :subject_type
-      t.index [:subject_id, :subject_type], unique: true
+      t.index [:subject_id, :subject_type]
       t.index :action
       t.index [:game_session_id, :action]
       t.timestamps

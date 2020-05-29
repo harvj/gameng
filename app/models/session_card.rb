@@ -18,16 +18,36 @@ class SessionCard < ApplicationRecord
     update_attribute(:played_at, Time.zone.now)
   end
 
-  def active?
-    dealt_at.present? && played_at.nil? && discarded_at.nil?
+  def status
+    return 'deck' if !dealt?
+    return 'playable' if playable?
+    return 'played' if played?
+    return 'discarded' if discarded?
+    'unknown'
+  end
+
+  def playable?
+    dealt? && !played? && !discarded?
+  end
+
+  def dealt?
+    dealt_at.present?
   end
 
   def dealt_at_micro
     [dealt_at&.to_i, dealt_at&.usec].join.to_i
   end
 
+  def discarded?
+    discarded_at.present?
+  end
+
   def discarded_at_micro
     [discarded_at&.to_i, discarded_at&.usec].join.to_i
+  end
+
+  def played?
+    played_at.present?
   end
 
   def played_at_micro

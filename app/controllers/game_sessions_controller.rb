@@ -9,7 +9,7 @@ class GameSessionsController < ApplicationController
 
   def update
     play_class = "Play::#{@game_session.game.slug.classify}".safe_constantize
-    updated_session = play_class.(@game_session).subject
+    updated_session = play_class.(@game_session, current_user: current_user).subject
     @rep_session = Representers::GameSession.(updated_session)
     render json: { status: 'success', content: { session: @rep_session } }
   end

@@ -28,7 +28,7 @@ class Play::ModernArt < Play::Base
     season_three: { '3' => 6,  '4' => 4, '5' => 3 }
   }
 
-  def initialize(_session=nil)
+  def initialize(_session=nil, _options={})
     super
     @draw_deck = session.decks.find_by(slug: 'draw')
   end

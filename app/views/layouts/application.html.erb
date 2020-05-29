@@ -14,7 +14,7 @@
   </head>
 
   <body>
-    <div id='games' class='container'>
+    <div id='games' class='container-sm'>
       <% if @common_data.present? %>
         <common-data :common-data="<%= @common_data.to_json %>"></common-data>
       <% end %>

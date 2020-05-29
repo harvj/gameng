@@ -26,18 +26,18 @@ module GameBuild
       DEFAULT_USERS.each do |params|
         next if User.find_by(username: params[:username]).present?
         log("building User: #{params}")
-        User.create(params.merge(password: USER_PASSWORD))
+        User.create!(params.merge(password: USER_PASSWORD))
       end
     end
 
     def create_game(params)
       log("building Game: #{params}")
-      Game.create(params)
+      Game.create!(params)
     end
 
     def create_card(params)
       log("building Card: #{params}")
-      Card.create(params)
+      Card.create!(params)
     end
   end
 end

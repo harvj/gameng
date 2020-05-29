@@ -12,6 +12,7 @@ import Flash from '../components/Flash.vue'
 import Game from '../components/Game.vue'
 import GamesIndex from '../components/GamesIndex.vue'
 import GameSession from '../components/GameSession.vue'
+import GameSessionRow from '../components/GameSessionRow.vue'
 import LoginForm from '../components/LoginForm.vue'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Game,
       GamesIndex,
       GameSession,
+      GameSessionRow,
       LoginForm
     },
 

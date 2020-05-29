@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_28_063645) do
+ActiveRecord::Schema.define(version: 2020_05_29_055457) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,7 +23,8 @@ ActiveRecord::Schema.define(version: 2020_05_28_063645) do
     t.datetime "updated_at", precision: 6, null: false
     t.string "color"
     t.string "icon_class"
-    t.integer "game_logical_sort"
+    t.integer "name_sort"
+    t.integer "value_sort"
     t.index ["game_id"], name: "index_cards_on_game_id"
   end
 
@@ -52,6 +53,7 @@ ActiveRecord::Schema.define(version: 2020_05_28_063645) do
     t.integer "game_session_id"
     t.boolean "moderator", default: false
     t.integer "score"
+    t.index ["game_session_id", "user_id"], name: "index_players_on_game_session_id_and_user_id", unique: true
     t.index ["game_session_id"], name: "index_players_on_game_session_id"
     t.index ["user_id"], name: "index_players_on_user_id"
   end
@@ -67,7 +69,10 @@ ActiveRecord::Schema.define(version: 2020_05_28_063645) do
     t.datetime "dealt_at"
     t.integer "game_session_id"
     t.index ["card_id"], name: "index_session_cards_on_card_id"
+    t.index ["game_session_id", "session_deck_id"], name: "index_session_cards_on_game_session_id_and_session_deck_id"
     t.index ["game_session_id"], name: "index_session_cards_on_game_session_id"
+    t.index ["player_id", "game_session_id"], name: "index_session_cards_on_player_id_and_game_session_id"
+    t.index ["player_id", "session_deck_id"], name: "index_session_cards_on_player_id_and_session_deck_id"
     t.index ["player_id"], name: "index_session_cards_on_player_id"
     t.index ["session_deck_id"], name: "index_session_cards_on_session_deck_id"
   end
@@ -97,7 +102,7 @@ ActiveRecord::Schema.define(version: 2020_05_28_063645) do
     t.index ["affected_played_id"], name: "index_session_frames_on_affected_played_id"
     t.index ["game_session_id", "action"], name: "index_session_frames_on_game_session_id_and_action"
     t.index ["game_session_id"], name: "index_session_frames_on_game_session_id"
-    t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type", unique: true
+    t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type"
   end
 
   create_table "users", force: :cascade do |t|

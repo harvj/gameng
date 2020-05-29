@@ -4,7 +4,7 @@ class GamesController < ApplicationController
   def index
     games = Game.all
 
-    @rep_games = Representers::Game.(games)
+    @rep_games = Representers::Game.(games, scalar: true)
     respond_to do |format|
       format.html
       format.json { render json: { status: 'success', content: { games: @rep_games }}.to_json }
@@ -12,7 +12,7 @@ class GamesController < ApplicationController
   end
 
   def show
-    @rep_game = Representers::Game.()
+    @rep_game = Representers::Game.(@game)
     respond_to do |format|
       format.html
       format.json { render json: { status: 'success', content: { game: @rep_game }}.to_json }

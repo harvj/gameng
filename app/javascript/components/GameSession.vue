@@ -2,15 +2,15 @@
   <div :id="`session-${session.uid}`">
     <div class="d-flex flex-row justify-content-between">
       <div class="p-2">
-        <h2>{{ session.game.name }}</h2>
+        <h2><a :href="session.game.uri">{{ session.game.name }}</a></h2>
       </div>
-      <div v-if="session.config.playable" class="p-2">
+      <div v-if="showActionButton" class="p-2">
         <button
           class="btn btn-dark"
           @click="updateSession"
         >
           <i v-if="awaitingSessionUpdate" class="fas fa-spinner fa-pulse"></i>
-          <span v-else>{{ session.config.nextActionText }}</span>
+          <span v-else>{{ session.nextActionText }}</span>
         </button>
       </div>
     </div>
@@ -24,48 +24,61 @@
           <tr>
             <td>started:</td><td>{{ session.startedAt }}</td>
           </tr>
-          <tr>
-            <td>players:</td>
-            <td>
-              <div class="d-flex flex-row flex-wrap">
-                <div v-for="player in session.players" class="p-2 mr-2 mb-2 bg-light">
-                  {{ player.user.name }}
-                </div>
-              </div>
-            </td>
-          </tr>
           <tr v-if="session.completed">
             <td>completed:</td><td>{{ session.completedAt }}</td>
           </tr>
           <tr v-else>
             <td>status:</td><td>{{ session.state }}</td>
           </tr>
+          <tr>
+            <td>players:</td>
+            <td>
+              <div class="d-flex flex-row flex-wrap">
+                <div v-for="player in session.players" class="p-2 mr-2 mb-2 bg-light">
+                  <span v-if="player.moderator" class="badge badge-dark mr-1">mod</span>
+                  {{ player.user.name }}
+                </div>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <div v-if="loggedInPlayer" class="player-field">
-      <div v-if="playerHasCards" class="d-flex flex-row session-cards">
-        <div class="p-2">
-          <h4>Your Hand</h4>
+      <div class="d-flex flex-row justify-content-between p-2">
+        <div>
+          <h5>Your Cards</h5>
         </div>
-        <div class="px-2 py-3">
-          <a href="#" @click="sortCards">sort</a>
+        <div class="align-self-center">
+          <a href="#" @click.prevent="changeCardGrouping">
+            regroup
+          </a>
+        </div>
+        <div class="align-self-center">
+          <a href="#" @click.prevent="changeCardSort">
+            change sort
+          </a>
         </div>
       </div>
 
-      <div class="d-flex flex-row flex-wrap">
-        <div v-for="card in this.loggedInPlayer.cards" class="p-1">
-          <button :class="`btn btn-primary my-1 ${card.color}`">
-            <i :class="`fas fa-${card.iconClass}`"></i>
-            {{ card.name }}
-          </button>
+      <div class="d-flex flex-row" v-for="group in cardGroups" :key="group.title">
+        <div class="align-self-top">
+          <div class="badge badge-light mt-2 mr-2 p-2">{{ group.title }}</div>
+        </div>
+        <div class="d-flex flex-row flex-wrap">
+          <div v-for="card in group.cards" class="p-1">
+            <button :class="`btn btn-primary my-1 ${card.color}`">
+              <i :class="`fas fa-${card.iconClass}`"></i>
+              {{ card.name }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="px-2 mb-2" v-else-if="session.config.joinable">
-      <button class="btn btn-dark" @click="addPlayer">
+    <div class="px-2 mb-2" v-else-if="session.joinable">
+      <button class="btn btn-dark" @click.prevent="addPlayer">
         <i v-if="awaitingAddPlayer" class="fas fa-spinner fa-pulse"></i>
         <span v-else>Join</span>
       </button>
@@ -87,9 +100,11 @@
 
     data: function () {
       return {
-        session: this.initGameSession,
+        awaitingAddPlayer: false,
         awaitingSessionUpdate: false,
-        awaitingAddPlayer: false
+        groupCardsBy: 'status',
+        session: this.initGameSession,
+        sortCardsBy: 'dealtAt'
       }
     },
 
@@ -103,19 +118,50 @@
         }
       },
 
-      loggedInPlayer: function () {
-        return this.session.players.find(i => i.user.username == this.currentUser.username)
+      displayCards: function () {
+        if (!this.loggedInPlayer) { return [] }
+        return this.session.cards.filter(i => i.playerId === this.loggedInPlayer.id).sort((a,b) => a[this.sortCardsBy] - b[this.sortCardsBy])
       },
 
-      playerHasCards: function () {
-        return this.loggedInPlayer.cards.length > 0
+      cardGroups: function () {
+        return [...new Set(this.displayCards.map(i => i[this.groupCardsBy]))].map(
+          title => {
+            return {
+              title: title,
+              cards: this.displayCards.filter(i => i[this.groupCardsBy] === title)
+            }
+          }
+        )
+      },
+
+      loggedInPlayer: function () {
+        return this.session.players.find(i => i.user.username === this.currentUser.username)
+      },
+
+      showActionButton: function () {
+        if (!this.loggedInPlayer) { return false }
+        return this.session.playable && (!this.session.started || this.loggedInPlayer.moderator)
       }
 
     },
 
     methods: {
-      sortCards: function () {
-        this.loggedInPlayer.cards = this.loggedInPlayer.cards.sort((a,b) => a.sort - b.sort)
+      changeCardSort: function () {
+        const map = {
+          dealtAt: 'nameSort',
+          nameSort: 'valueSort',
+          valueSort: 'dealtAt'
+        }
+        this.sortCardsBy = map[this.sortCardsBy]
+      },
+
+      changeCardGrouping: function () {
+        const map = {
+          status: 'name',
+          name: 'value',
+          value: 'status'
+        }
+        this.groupCardsBy = map[this.groupCardsBy]
       },
 
       updateSession: async function () {

@@ -5,19 +5,32 @@ module Representers
     def build_object(session)
       @session = session
       @config = session.game_class.new(session)
-      {
-        uid: session.uid,
-        state: session_state,
-        started: session.started_at.present?,
-        startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
+
+      scalar = {
+        active: session.active?,
         completed: session.completed_at.present?,
         completedAt: session.completed_at&.strftime('%a %e %b %Y %k:%M:%S'),
+        completedAtDate: session.completed_at&.strftime('%e %b %Y'),
+        joinable: config.joinable?,
+        nextActionText: config.next_action_text[config.next_action&.to_sym],
+        playable: config.playable?,
+        playerCount: session.players.count,
+        started: session.started_at.present?,
+        startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
+        startedAtDate: session.started_at&.strftime('%e %b %Y'),
+        state: session_state,
+        states: transition_frames.map { |frame| { frame.action => frame.created_at_micro } },
+        uid: session.uid,
         uri: game_session_path(session.uid),
-        game: Representers::Game.(session.game, scalar: true),
-        players: Representers::Player.(session.players, session: session),
-        decks: decks,
-        config: rep_config
+        waiting: session.waiting?
       }
+      return scalar if scalar_only?
+
+      scalar.merge(
+        cards: Representers::SessionCard.(session.cards),
+        game: Representers::Game.(session.game, scalar: true),
+        players: Representers::Player.(session.players, scalar: true)
+      )
     end
 
     def session_state
@@ -28,21 +41,8 @@ module Representers
       end
     end
 
-    def rep_config
-      {
-        joinable: config.joinable?,
-        playable: config.playable?,
-        nextActionText: config.next_action_text[config.next_action&.to_sym]
-      }
-    end
-
-    def decks
-      session.decks.map do |deck|
-        {
-          slug: deck.slug,
-          card_count: deck.cards.count
-        }
-      end
+    def transition_frames
+      session.frames.where(action: session.game_class::PLAY_SEQUENCE)
     end
   end
 end

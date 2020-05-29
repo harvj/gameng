@@ -1,12 +1,20 @@
 @import 'variables';
 
-a {
-  color: $text-color;
+@mixin link-style($color, $reverse-color) {
+  color: $color;
   font-weight: 500;
 
   &:hover {
-    color: white;
-    background-color: $text-color;
+    color: $reverse-color;
+    background-color: $color;
     text-decoration: none;
   }
+}
+
+a { @include link-style($text-color, $text-color-light) }
+
+.bg-success {
+  color: $text-color-light;
+
+  a { @include link-style($text-color-light, var(--success)) }
 }

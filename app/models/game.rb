@@ -3,5 +3,5 @@ class Game < ApplicationRecord
   has_many :sessions, class_name: 'GameSession', dependent: :destroy
 
   validates :name, presence: true
-  validates :slug, presence: true
+  validates :slug, presence: true, uniqueness: true
 end
