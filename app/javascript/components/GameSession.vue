@@ -7,10 +7,10 @@
       <div v-if="showActionButton" class="p-2">
         <button
           class="btn btn-dark"
-          @click="updateSession"
+          @click.prevent="updateSession"
         >
           <i v-if="awaitingSessionUpdate" class="fas fa-spinner fa-pulse"></i>
-          <span v-else>{{ session.nextActionText }}</span>
+          <span v-else>{{ session.nextActionPrompt }}</span>
         </button>
       </div>
     </div>
@@ -46,18 +46,20 @@
     </div>
 
     <div v-if="loggedInPlayer" class="player-field">
-      <div class="d-flex flex-row justify-content-between p-2">
+      <div v-if="displayCards.length > 0" class="d-flex flex-row justify-content-between p-2">
         <div>
           <h5>Your Cards</h5>
         </div>
         <div class="align-self-center">
+          grouped by:
           <a href="#" @click.prevent="changeCardGrouping">
-            regroup
+            {{ session.terms[groupCardsBy] }}
           </a>
         </div>
         <div class="align-self-center">
+          sorted by:
           <a href="#" @click.prevent="changeCardSort">
-            change sort
+            {{ session.terms[sortCardsBy] }}
           </a>
         </div>
       </div>
@@ -68,9 +70,18 @@
         </div>
         <div class="d-flex flex-row flex-wrap">
           <div v-for="card in group.cards" class="p-1">
-            <button :class="`btn btn-primary my-1 ${card.color}`">
-              <i :class="`fas fa-${card.iconClass}`"></i>
-              {{ card.name }}
+            <button
+              :class="`btn btn-primary my-1 ${card.color}`"
+              :disabled="!card.playable"
+              @click.prevent="playCard(card)"
+            >
+              <span v-if="awaitingPlayCard.includes(card.id)">
+                <i class="fas fa-spinner fa-pulse"></i>
+              </span>
+              <span v-else>
+                <i :class="`fas fa-${card.iconClass}`"></i>
+                {{ card.name }}
+              </span>
             </button>
           </div>
         </div>
@@ -102,9 +113,10 @@
       return {
         awaitingAddPlayer: false,
         awaitingSessionUpdate: false,
-        groupCardsBy: 'status',
+        awaitingPlayCard: [],
+        groupCardsBy: 'dealtDuringState',
         session: this.initGameSession,
-        sortCardsBy: 'dealtAt'
+        sortCardsBy: 'status'
       }
     },
 
@@ -120,7 +132,7 @@
 
       displayCards: function () {
         if (!this.loggedInPlayer) { return [] }
-        return this.session.cards.filter(i => i.playerId === this.loggedInPlayer.id).sort((a,b) => a[this.sortCardsBy] - b[this.sortCardsBy])
+        return this.session.cards.filter(i => i.playerId === this.loggedInPlayer.id).sort((a,b) => (a[this.sortGroupsBy] > b[this.sortGroupsBy]) ? 1 : -1)
       },
 
       cardGroups: function () {
@@ -128,10 +140,20 @@
           title => {
             return {
               title: title,
-              cards: this.displayCards.filter(i => i[this.groupCardsBy] === title)
+              cards: this.displayCards.filter(i => i[this.groupCardsBy] === title).sort((a,b) => (a[this.sortCardsBy] > b[this.sortCardsBy]) ? 1 : -1)
             }
           }
         )
+      },
+
+      sortGroupsBy: function () {
+        const map = {
+          dealtDuringState: 'dealtAt',
+          status: 'status',
+          name: 'nameSort',
+          value: 'valueSort'
+        }
+        return map[this.groupCardsBy]
       },
 
       loggedInPlayer: function () {
@@ -148,9 +170,9 @@
     methods: {
       changeCardSort: function () {
         const map = {
-          dealtAt: 'nameSort',
+          status: 'nameSort',
           nameSort: 'valueSort',
-          valueSort: 'dealtAt'
+          valueSort: 'status'
         }
         this.sortCardsBy = map[this.sortCardsBy]
       },
@@ -159,7 +181,8 @@
         const map = {
           status: 'name',
           name: 'value',
-          value: 'status'
+          value: 'dealtDuringState',
+          dealtDuringState: 'status'
         }
         this.groupCardsBy = map[this.groupCardsBy]
       },
@@ -193,6 +216,24 @@
           console.log(e)
         } finally {
           this.awaitingAddPlayer = false
+        }
+      },
+
+      playCard: async function (card) {
+        this.awaitingPlayCard.push(card.id)
+        console.log(this.awaitingPlayCard)
+        try {
+          const response = await this.callEndpoint('PATCH', card.playCardPath, this.updateParams)
+          setTimeout(() => {
+            if (response.data.status === 'success') {
+              this.session = response.data.content.session
+            }
+          }, 250)
+        } catch (e) {
+          console.log(e)
+        } finally {
+          const index = this.awaitingPlayCard.indexOf(card.id)
+          this.awaitingPlayCard.splice(index,1)
         }
       }
     }

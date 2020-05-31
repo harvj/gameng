@@ -2,7 +2,7 @@
   <div id="games-index" class="p-2">
     <h2>What are we playing?</h2>
     <div v-for="game in games"
-      :key="game.slug"
+      :key="game.key"
     >
       <a :href="game.uri">{{ game.name }}</a>
     </div>

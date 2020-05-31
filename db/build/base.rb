@@ -5,7 +5,7 @@ module GameBuild
     USER_PASSWORD = 'gitter'.freeze
 
     DEFAULT_USERS = [
-      { name: 'Jim Harvey',       username: 'radio' },
+      { name: 'Jim Harvey',       username: 'jim' },
       { name: 'Paul Harvey',      username: 'paul' },
       { name: 'Bob McMurray',     username: 'bob' },
       { name: 'Robert McMurray',  username: 'robert' },

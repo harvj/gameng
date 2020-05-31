@@ -22,6 +22,6 @@ class GamesController < ApplicationController
   private
 
   def load_game
-    @game = Game.find_by(slug: params[:slug]) || not_found
+    @game = Game.find_by(key: params[:game_key]) || not_found
   end
 end

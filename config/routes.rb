@@ -4,6 +4,12 @@ Rails.application.routes.draw do
   resources :game_sessions, only: %i(create)
   resources :players, only: %i(create)
 
+  resources :session_cards, only: [] do
+    member do
+      patch :play
+    end
+  end
+
   devise_for :users, controllers: { sessions: 'users/sessions' }
 
   devise_scope :user do
@@ -16,5 +22,5 @@ Rails.application.routes.draw do
   patch 'sessions/:uid' => 'game_sessions#update'
   delete 'sessions/:uid' => 'game_sessions#destroy'
 
-  get ':slug' => 'games#show', as: :game
+  get ':game_key' => 'games#show', as: :game
 end

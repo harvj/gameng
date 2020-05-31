@@ -3,8 +3,8 @@ module Representers
     def build_object(game)
       scalar = {
         name: game.name,
-        slug: game.slug,
-        uri: game_path(game.slug)
+        key: game.key,
+        uri: game_path(game.key)
       }
       return scalar if scalar_only?
 

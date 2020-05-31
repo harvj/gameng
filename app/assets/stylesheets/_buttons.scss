@@ -11,6 +11,13 @@
     background-color: $color !important;
     border-color: darken($color, $dark-adj) !important;
   }
+  &:disabled, &:disabled:hover {
+    background-color: #fefefe;
+    &:active {
+      background-color: #fefefe !important;
+      border-color: darken($color, $dark-pct) !important;
+    }
+  }
 }
 
 .btn-primary {

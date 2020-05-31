@@ -1,5 +1,5 @@
 <template>
-  <div :id="`game-${game.slug}`">
+  <div :id="`game-${game.key}`">
 
     <div class="d-flex flex-row justify-content-between">
       <div class="p-2">
@@ -14,9 +14,9 @@
         >
           <input name="utf8" type="hidden" value="✓">
           <input type="hidden" name="authenticity_token" :value="token">
-          <input type="hidden" name="slug" :value="game.slug">
+          <input type="hidden" name="game_key" :value="game.key">
           <button type="submit" class="btn btn-dark btn-lg">
-            Play
+            New Game
           </button>
         </form>
       </div>

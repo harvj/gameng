@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_29_055457) do
+ActiveRecord::Schema.define(version: 2020_05_30_202746) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -42,10 +42,12 @@ ActiveRecord::Schema.define(version: 2020_05_29_055457) do
 
   create_table "games", force: :cascade do |t|
     t.string "name"
-    t.string "slug"
+    t.string "key"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["slug"], name: "index_games_on_slug", unique: true
+    t.integer "min_players"
+    t.integer "max_players"
+    t.index ["key"], name: "index_games_on_key", unique: true
   end
 
   create_table "players", force: :cascade do |t|
@@ -79,10 +81,10 @@ ActiveRecord::Schema.define(version: 2020_05_29_055457) do
 
   create_table "session_decks", force: :cascade do |t|
     t.integer "game_session_id"
-    t.string "slug"
+    t.string "key"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["game_session_id", "slug"], name: "index_session_decks_on_game_session_id_and_slug", unique: true
+    t.index ["game_session_id", "key"], name: "index_session_decks_on_game_session_id_and_key", unique: true
     t.index ["game_session_id"], name: "index_session_decks_on_game_session_id"
   end
 
@@ -90,7 +92,7 @@ ActiveRecord::Schema.define(version: 2020_05_29_055457) do
     t.integer "game_session_id"
     t.string "action"
     t.integer "active_player_id"
-    t.integer "affected_played_id"
+    t.integer "affected_player_id"
     t.integer "value"
     t.string "result"
     t.integer "subject_id"
@@ -99,7 +101,7 @@ ActiveRecord::Schema.define(version: 2020_05_29_055457) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["action"], name: "index_session_frames_on_action"
     t.index ["active_player_id"], name: "index_session_frames_on_active_player_id"
-    t.index ["affected_played_id"], name: "index_session_frames_on_affected_played_id"
+    t.index ["affected_player_id"], name: "index_session_frames_on_affected_player_id"
     t.index ["game_session_id", "action"], name: "index_session_frames_on_game_session_id_and_action"
     t.index ["game_session_id"], name: "index_session_frames_on_game_session_id"
     t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type"
