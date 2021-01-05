@@ -34,9 +34,10 @@
             <td>players:</td>
             <td>
               <div class="d-flex flex-row flex-wrap">
-                <div v-for="player in session.players" class="p-2 mr-2 mb-2 bg-light">
-                  <span v-if="player.moderator" class="badge badge-dark mr-1">mod</span>
+                <div v-for="player in session.players" :class="playerBadgeClass(player)">
+                  <span v-if="player.turnOrder" class="badge badge-info mr-1">{{ player.turnOrder }}</span>
                   {{ player.user.name }}
+                  <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
                 </div>
               </div>
             </td>
@@ -45,7 +46,54 @@
       </table>
     </div>
 
-    <div v-if="loggedInPlayer" class="player-field">
+    <div v-if="loggedInPlayer && this.session.started" class="player-field">
+      <div v-if="!this.session.completed || !loggedInPlayer.score" class="p-2">
+        <h5>Actions</h5>
+        <div class="d-flex flex-row">
+          <div v-if="isCurrentPlayer(loggedInPlayer)">
+            <div v-if="loggedInPlayer.canPass" class="d-flex flex-row flex-wrap">
+              <button
+                class="btn btn-dark my-1"
+                @click.prevent="playerPass(loggedInPlayer)"
+              >
+                <span v-if="awaitingPlayerPass">
+                  <i class="fas fa-spinner fa-pulse"></i>
+                </span>
+                <span v-else>Pass</span>
+              </button>
+            </div>
+            <div v-else>
+              Your turn. Click a card below to play it.
+            </div>
+          </div>
+          <div v-else-if="this.session.completed">
+            <div class="form-group row">
+              <div class="col-6">
+                <label for="player-score" class="sr-only">Your Score</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="player-score"
+                  placeholder="Your Score"
+                  v-model="playerParams.score"
+                >
+              </div>
+              <button
+                type="submit"
+                class="btn btn-dark"
+                @click.prevent="playerUpdate(loggedInPlayer)"
+              >
+                <span v-if="awaitingPlayerUpdate">
+                  <i class="fas fa-spinner fa-pulse"></i>
+                </span>
+                <span v-else>Submit</span>
+              </button>
+            </div>
+          </div>
+          <div v-else>{{ this.session.currentPlayer.user.name }}'s turn...</div>
+        </div>
+      </div>
+
       <div v-if="displayCards.length > 0" class="d-flex flex-row justify-content-between p-2">
         <div>
           <h5>Your Cards</h5>
@@ -72,7 +120,7 @@
           <div v-for="card in group.cards" class="p-1">
             <button
               :class="`btn btn-primary my-1 ${card.color}`"
-              :disabled="!card.playable"
+              :disabled="!card.playable || !isCurrentPlayer(loggedInPlayer)"
               @click.prevent="playCard(card)"
             >
               <span v-if="awaitingPlayCard.includes(card.id)">
@@ -88,7 +136,7 @@
       </div>
     </div>
 
-    <div class="px-2 mb-2" v-else-if="session.joinable">
+    <div class="px-2 mb-2" v-else-if="session.joinable && !loggedInPlayer">
       <button class="btn btn-dark" @click.prevent="addPlayer">
         <i v-if="awaitingAddPlayer" class="fas fa-spinner fa-pulse"></i>
         <span v-else>Join</span>
@@ -113,10 +161,15 @@
       return {
         awaitingAddPlayer: false,
         awaitingSessionUpdate: false,
+        awaitingPlayerPass: false,
+        awaitingPlayerUpdate: false,
         awaitingPlayCard: [],
         groupCardsBy: 'dealtDuringState',
         session: this.initGameSession,
-        sortCardsBy: 'status'
+        sortCardsBy: 'status',
+        playerParams: {
+          score: null
+        }
       }
     },
 
@@ -126,7 +179,8 @@
       updateParams: function () {
         return {
           uid: this.session.uid,
-          authenticity_token: this.token
+          authenticity_token: this.token,
+          player: this.playerParams
         }
       },
 
@@ -162,12 +216,26 @@
 
       showActionButton: function () {
         if (!this.loggedInPlayer) { return false }
-        return this.session.playable && (!this.session.started || this.loggedInPlayer.moderator)
+        return this.session.playable && !this.session.started
       }
 
     },
 
     methods: {
+      isCurrentPlayer: function (player) {
+        if (this.session.completed) { return false }
+        return player.id === this.session.currentPlayer.id
+      },
+
+      playerBadgeClass: function (player) {
+        return {
+          'p-2 mr-2 mb-2 rounded': true,
+          'bg-light': !this.isCurrentPlayer(player) && !player.winner,
+          'btn-primary info': this.isCurrentPlayer(player),
+          'bg-warning': player.winner,
+        }
+      },
+
       changeCardSort: function () {
         const map = {
           status: 'nameSort',
@@ -234,6 +302,38 @@
         } finally {
           const index = this.awaitingPlayCard.indexOf(card.id)
           this.awaitingPlayCard.splice(index,1)
+        }
+      },
+
+      playerPass: async function (player) {
+        this.awaitingPlayerPass = true
+        try {
+          const response = await this.callEndpoint('PATCH', player.passPath, this.updateParams)
+          setTimeout(() => {
+            if (response.data.status === 'success') {
+              this.session = response.data.content.session
+            }
+          }, 250)
+        } catch (e) {
+          console.log(e)
+        } finally {
+          this.awaitingPlayerPass = false
+        }
+      },
+
+      playerUpdate: async function (player) {
+        this.awaitingPlayerUpdate = true
+        try {
+          const response = await this.callEndpoint('PATCH', player.playerPath, this.updateParams)
+          setTimeout(() => {
+            if (response.data.status === 'success') {
+              this.session = response.data.content.session
+            }
+          }, 250)
+        } catch (e) {
+          console.log(e)
+        } finally {
+          this.awaitingPlayerUpdate = false
         }
       }
     }

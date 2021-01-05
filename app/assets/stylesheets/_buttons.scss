@@ -26,4 +26,5 @@
   &.yellow       { @include primary-button($yellow, 25, 30) }
   &.light-green  { @include primary-button($light-green, 30, 25, -5) }
   &.light-purple { @include primary-button($light-purple, 20, 10, 5) }
+  &.info         { @include primary-button($info, 20, 18, 5) }
 }

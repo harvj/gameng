@@ -3,8 +3,9 @@ class GameSession < ApplicationRecord
   END_STATES   = %w(completed)
 
   belongs_to :game
+  belongs_to :current_player, class_name: 'Player', optional: true
 
-  has_many :players, dependent: :destroy
+  has_many :players, -> { order('turn_order asc') }, dependent: :destroy
   has_many :decks, class_name: 'SessionDeck', dependent: :destroy
   has_many :cards, class_name: 'SessionCard', dependent: :destroy
   has_many :frames, class_name: 'SessionFrame', dependent: :destroy
@@ -14,6 +15,22 @@ class GameSession < ApplicationRecord
 
   delegate :play_class, :min_players, :max_players,
     to: :game
+
+  scope :played_card_counts_by_name, ->(session, state_name) { find_by_sql(<<~SQL
+      select count(*), cards.name from session_cards
+      inner join session_frames on session_frames.subject_id = session_cards.id and session_frames.subject_type = 'SessionCard'
+      inner join cards on cards.id = session_cards.card_id
+      where session_cards.game_session_id = #{session.id}
+      and session_frames."action" = 'card_played'
+      and session_frames."state" = '#{state_name}'
+      group by cards.name
+    SQL
+    )
+  }
+
+  def game_play
+    play_class.new(self)
+  end
 
   def self.generate_uid
     Passphrase::Passphrase.new(number_of_words: 4).passphrase.tr(' ','-')
@@ -47,6 +64,14 @@ class GameSession < ApplicationRecord
 
   def next_action_prompt
     next_action_prompts[next_action]
+  end
+
+  def advance_turn
+    update_attribute(:current_player, current_player.next_player)
+  end
+
+  def played_card_counts_by_name(state_name)
+    GameSession.played_card_counts_by_name(self, state_name)
   end
 
   def state_transitions

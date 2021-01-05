@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_30_202746) do
+ActiveRecord::Schema.define(version: 2021_01_05_193431) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -36,6 +36,8 @@ ActiveRecord::Schema.define(version: 2020_05_30_202746) do
     t.string "state"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "current_player_id"
+    t.index ["current_player_id"], name: "index_game_sessions_on_current_player_id"
     t.index ["game_id"], name: "index_game_sessions_on_game_id"
     t.index ["uid"], name: "index_game_sessions_on_uid", unique: true
   end
@@ -55,8 +57,13 @@ ActiveRecord::Schema.define(version: 2020_05_30_202746) do
     t.integer "game_session_id"
     t.boolean "moderator", default: false
     t.integer "score"
+    t.integer "turn_order"
+    t.integer "next_player_id"
+    t.boolean "winner", default: false
     t.index ["game_session_id", "user_id"], name: "index_players_on_game_session_id_and_user_id", unique: true
     t.index ["game_session_id"], name: "index_players_on_game_session_id"
+    t.index ["next_player_id"], name: "index_players_on_next_player_id"
+    t.index ["turn_order"], name: "index_players_on_turn_order"
     t.index ["user_id"], name: "index_players_on_user_id"
   end
 
@@ -91,7 +98,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_202746) do
   create_table "session_frames", force: :cascade do |t|
     t.integer "game_session_id"
     t.string "action"
-    t.integer "active_player_id"
+    t.integer "acting_player_id"
     t.integer "affected_player_id"
     t.integer "value"
     t.string "result"
@@ -99,11 +106,15 @@ ActiveRecord::Schema.define(version: 2020_05_30_202746) do
     t.string "subject_type"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "previous_frame_id"
+    t.string "state"
+    t.index ["acting_player_id"], name: "index_session_frames_on_acting_player_id"
     t.index ["action"], name: "index_session_frames_on_action"
-    t.index ["active_player_id"], name: "index_session_frames_on_active_player_id"
     t.index ["affected_player_id"], name: "index_session_frames_on_affected_player_id"
     t.index ["game_session_id", "action"], name: "index_session_frames_on_game_session_id_and_action"
     t.index ["game_session_id"], name: "index_session_frames_on_game_session_id"
+    t.index ["previous_frame_id"], name: "index_session_frames_on_previous_frame_id"
+    t.index ["state"], name: "index_session_frames_on_state"
     t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type"
   end
 

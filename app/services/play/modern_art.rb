@@ -1,5 +1,5 @@
 class Play::ModernArt < Play::Base
-  PLAY_SEQUENCE = %w(season_one season_two season_three).freeze
+  PLAY_SEQUENCE = %w(season_one season_two season_three season_four).freeze
   DECKS = {
     default: {
       lite_metal:  { once_around: 3, fixed: 2, sealed: 2, open: 3, double: 2 },
@@ -27,6 +27,11 @@ class Play::ModernArt < Play::Base
     @deck ||= session.decks.find_by(key: 'default')
   end
 
+  def started
+    super
+    transition_state
+  end
+
   def season_one
     deck.deal_cards(session.players, CARDS_TO_DEAL[:season_one][session.players.count.to_s])
   end
@@ -37,5 +42,40 @@ class Play::ModernArt < Play::Base
 
   def season_three
     deck.deal_cards(session.players, CARDS_TO_DEAL[:season_three][session.players.count.to_s])
+  end
+
+  def season_four
+  end
+
+  def card_played(card)
+    if session.played_card_counts_by_name(session.state).any? { |i| i.count >= 5 }
+      transition_state
+      session.advance_turn
+    elsif card.value != 'double'
+      session.advance_turn
+    end
+  end
+
+  def player_pass(player)
+    single_double_player = last_card_played_frame.acting_player
+    session.advance_turn
+    if single_double_player == player.next_player
+      SessionFrame::Create.(session,
+        action: 'free_single_double',
+        affected_player: single_double_player,
+        subject: last_session_card_played
+      )
+      session.advance_turn
+    end
+  end
+
+  def can_pass?(player)
+    return false if last_card_played_frame.blank?
+    last_card_played.value == 'double' && session.frames.where(action: 'player_passed', acting_player: player).where('created_at > ?', last_card_played_frame.created_at).blank?
+  end
+
+  def card_playable?(card)
+    return true if last_card_played_frame.blank?
+    last_card_played.value != 'double' || (card.name == last_card_played.name && card.value != 'double') || session.frames.last.action == 'free_single_double'
   end
 end

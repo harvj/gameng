@@ -10,7 +10,7 @@ RSpec.describe 'Player::Create' do
   it 'creates a player on a joinable session' do
     player = player_create.subject
     expect(player.user).to eq user
-    expect(player.game_session).to eq session
+    expect(player.session).to eq session
     expect(player).not_to be_moderator
   end
 
@@ -18,7 +18,7 @@ RSpec.describe 'Player::Create' do
     player = player_create.subject
     frame = session.frames.last
     expect(frame.action).to eq 'player_created'
-    expect(frame.active_player).to eq player
+    expect(frame.acting_player).to eq player
     expect(frame.subject).to eq player
   end
 

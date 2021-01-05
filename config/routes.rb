@@ -2,7 +2,12 @@ Rails.application.routes.draw do
   root 'games#index'
 
   resources :game_sessions, only: %i(create)
-  resources :players, only: %i(create)
+
+  resources :players, only: %i(create update) do
+    member do
+      patch :pass
+    end
+  end
 
   resources :session_cards, only: [] do
     member do

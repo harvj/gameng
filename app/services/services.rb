@@ -16,6 +16,8 @@ module Services
   # ----- Services::Base
 
   class Base
+    attr_reader :subject, :parent, :params
+
     def apply_post_processing
     end
 
@@ -54,11 +56,13 @@ module Services
     def call
       @subject = build_child
       apply_post_processing
-      @subject
+      subject
     end
 
+    private
+
     def build_child
-      @parent.class.reflections.include?(children) ? @parent.send(children).build(@params) : @parent.send("build_#{child}", @params)
+      parent.class.reflections.include?(children) ? parent.send(children).build(params) : parent.send("build_#{child}", params)
     end
   end
 
@@ -78,16 +82,16 @@ module Services
       @subject = if params.class.name == target_class_name
         params
       else
-        target_class::Build.(@parent, params)
+        target_class::Build.(parent, params)
       end
     end
 
     def call
-      create { @subject.save }
+      create { subject.save }
     end
 
     def call!
-      create { @subject.save! }
+      create { subject.save! }
     end
 
     private
@@ -96,7 +100,7 @@ module Services
       apply_pre_processing
       apply_post_processing if yield
 
-      Services::Response.new(subject: @subject, errors: @subject.errors)
+      Services::Response.new(subject: subject, errors: subject.errors)
     end
   end
 
@@ -117,11 +121,11 @@ module Services
     end
 
     def call
-      update { @subject.update_attributes(@params) }
+      update { subject.update_attributes(params) }
     end
 
     def call!
-      update { @subject.update_attributes!(@params) }
+      update { subject.update_attributes!(params) }
     end
 
     private
@@ -132,11 +136,11 @@ module Services
         apply_post_processing if yield
       end
 
-      Services::Response.new(subject: @subject, errors: @subject.errors)
+      Services::Response.new(subject: subject, errors: subject.errors)
     end
 
     def changed?
-      @subject.attributes != @subject.attributes.with_indifferent_access.merge(@params)
+      subject.attributes != subject.attributes.with_indifferent_access.merge(params)
     end
   end
 end

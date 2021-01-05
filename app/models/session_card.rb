@@ -4,37 +4,45 @@ class SessionCard < ApplicationRecord
   belongs_to :card
   belongs_to :player, optional: true
 
-  scope :dealt,    -> { where('dealt_at IS NOT NULL')}
+  scope :dealt,    -> { where('dealt_at IS NOT NULL') }
   scope :undealt,  -> { where('dealt_at IS NULL') }
+  scope :played,   -> { where('played_at IS NOT NULL') }
   scope :shuffled, -> { order('random()') }
 
   def deal(player=nil)
-    self.dealt_at = Time.zone.now
-    self.player_id = player.id if player.present?
+    update_attributes(
+      dealt_at: Time.zone.now,
+      player: player
+    )
+    SessionFrame::Create.(session,
+      action: 'card_dealt',
+      affected_player: player,
+      subject: self
+    )
     log("#{card.name}: #{card.value} dealt to #{player.user.name}")
-    save
   end
 
   def play(affected_player=nil)
     update_attribute(:played_at, Time.zone.now)
-    session.frames.create(
-      subject: self,
+    SessionFrame::Create.(session,
       action: 'card_played',
-      active_player: player,
-      affected_player: affected_player
+      acting_player: player,
+      affected_player: affected_player,
+      subject: self
     )
+    session.game_play.card_played(card)
   end
 
   def status
     return 'deck' if !dealt?
-    return 'playable' if playable?
     return 'played' if played?
+    return 'playable' if playable?
     return 'discarded' if discarded?
-    'unknown'
+    'unplayable'
   end
 
   def playable?
-    dealt? && !played? && !discarded?
+    dealt? && !played? && !discarded? && session.game_play.card_playable?(card)
   end
 
   def dealt?
@@ -47,13 +55,7 @@ class SessionCard < ApplicationRecord
   end
 
   def dealt_during_state
-    return unless dealt?
-    result = nil
-    session.state_transitions.each do |state, started_at|
-      break if dealt_at_milli < started_at
-      result = state
-    end
-    result
+    session.frames.find_by(subject: self, action: 'card_dealt')&.state
   end
 
   def discarded?

@@ -1,18 +1,42 @@
 class PlayersController < ApplicationController
-  before_action :load_game_session, only: %i(create)
+  before_action :load_player, only: %i(pass update)
+  before_action :load_session, only: %i(create)
 
   def create
-    player_create = Player::Create.(current_user, game_session: @game_session)
+    player_create = Player::Create.(current_user, session: @session)
     render json: {
       status: player_create.status,
-      content: { session: Representers::GameSession.(@game_session.reload) },
+      content: { session: Representers::GameSession.(@session.reload) },
       errors: player_create.errors
     }
   end
 
+  def update
+    player_update = Player::Update.(@player, player_params)
+    render json: {
+      status: player_update.status,
+      content: { session: Representers::GameSession.(@player.session) },
+      errors: player_update.errors
+    }
+  end
+
+  def pass
+    @player.pass
+    @rep_session = Representers::GameSession.(@player.session)
+    render json: { status: 'success', content: { session: @rep_session }, errors: [] }
+  end
+
   private
 
-  def load_game_session
-    @game_session = GameSession.find_by(uid: params[:uid])
+  def load_session
+    @session = GameSession.find_by(uid: params[:uid])
+  end
+
+  def load_player
+    @player = Player.find(params[:id])
+  end
+
+  def player_params
+    params.require(:player).permit(:score)
   end
 end
