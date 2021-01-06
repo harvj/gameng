@@ -8,6 +8,7 @@ module Representers
         completed: session.completed_at.present?,
         completedAt: session.completed_at&.strftime('%a %e %b %Y %k:%M:%S'),
         completedAtDate: session.completed_at&.strftime('%e %b %Y'),
+        createdAt: session.created_at.to_i,
         joinable: session.joinable?,
         nextActionPrompt: session.next_action_prompt,
         playable: session.playable?,

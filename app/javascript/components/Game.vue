@@ -88,15 +88,15 @@
       }),
 
       activeSessions: function () {
-        return this.game.sessions.filter(i => i.active)
+        return this.game.sessions.filter(i => i.active).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
       },
 
       completedSessions: function () {
-        return this.game.sessions.filter(i => i.completed)
+        return this.game.sessions.filter(i => i.completed).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
       },
 
       waitingSessions: function () {
-        return this.game.sessions.filter(i => i.waiting)
+        return this.game.sessions.filter(i => i.waiting).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
       }
     }
   }
