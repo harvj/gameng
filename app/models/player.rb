@@ -2,6 +2,7 @@ class Player < ApplicationRecord
   belongs_to :user
   belongs_to :session, class_name: 'GameSession', foreign_key: 'game_session_id'
   belongs_to :next_player, class_name: 'Player', optional: true
+  belongs_to :role, optional: true
 
   has_many :cards, class_name: 'SessionCard'
   has_many :frames, class_name: 'SessionFrame', foreign_key: 'acting_player_id'

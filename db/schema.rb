@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_05_193431) do
+ActiveRecord::Schema.define(version: 2021_01_05_232730) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -60,11 +60,22 @@ ActiveRecord::Schema.define(version: 2021_01_05_193431) do
     t.integer "turn_order"
     t.integer "next_player_id"
     t.boolean "winner", default: false
+    t.integer "role_id"
     t.index ["game_session_id", "user_id"], name: "index_players_on_game_session_id_and_user_id", unique: true
     t.index ["game_session_id"], name: "index_players_on_game_session_id"
     t.index ["next_player_id"], name: "index_players_on_next_player_id"
+    t.index ["role_id"], name: "index_players_on_role_id"
     t.index ["turn_order"], name: "index_players_on_turn_order"
     t.index ["user_id"], name: "index_players_on_user_id"
+  end
+
+  create_table "roles", force: :cascade do |t|
+    t.string "name"
+    t.bigint "game_id"
+    t.string "icon_class"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["game_id"], name: "index_roles_on_game_id"
   end
 
   create_table "session_cards", force: :cascade do |t|

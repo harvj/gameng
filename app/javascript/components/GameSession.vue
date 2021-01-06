@@ -46,15 +46,26 @@
       </table>
     </div>
 
-    <div v-if="loggedInPlayer && this.session.started" class="player-field">
-      <div v-if="!this.session.completed || !loggedInPlayer.score" class="p-2">
+    <div v-if="session.loggedInPlayer && this.session.started" class="player-field">
+      <div v-if="this.session.completed" class="p-2">
+        <h5>Your Play History</h5>
+        <div class="p-2">
+          <div v-for="frame in session.loggedInPlayer.playHistory" :key="frame.id" class="row">
+            <div class="col-4">{{ frame.state }}</div>
+            <div class="col-6">{{ frame.subject.value }} {{ frame.subject.name }}</div>
+          </div>
+        </div>
+      </div>
+
+
+      <div v-if="!this.session.completed || !session.loggedInPlayer.score" class="p-2">
         <h5>Actions</h5>
         <div class="d-flex flex-row">
-          <div v-if="isCurrentPlayer(loggedInPlayer)">
-            <div v-if="loggedInPlayer.canPass" class="d-flex flex-row flex-wrap">
+          <div v-if="isCurrentPlayer(session.loggedInPlayer)">
+            <div v-if="session.loggedInPlayer.canPass" class="d-flex flex-row flex-wrap">
               <button
                 class="btn btn-dark my-1"
-                @click.prevent="playerPass(loggedInPlayer)"
+                @click.prevent="playerPass(session.loggedInPlayer)"
               >
                 <span v-if="awaitingPlayerPass">
                   <i class="fas fa-spinner fa-pulse"></i>
@@ -81,7 +92,7 @@
               <button
                 type="submit"
                 class="btn btn-dark"
-                @click.prevent="playerUpdate(loggedInPlayer)"
+                @click.prevent="playerUpdate(session.loggedInPlayer)"
               >
                 <span v-if="awaitingPlayerUpdate">
                   <i class="fas fa-spinner fa-pulse"></i>
@@ -120,7 +131,7 @@
           <div v-for="card in group.cards" class="p-1">
             <button
               :class="`btn btn-primary my-1 ${card.color}`"
-              :disabled="!card.playable || !isCurrentPlayer(loggedInPlayer)"
+              :disabled="!card.playable || !isCurrentPlayer(session.loggedInPlayer)"
               @click.prevent="playCard(card)"
             >
               <span v-if="awaitingPlayCard.includes(card.id)">
@@ -136,7 +147,7 @@
       </div>
     </div>
 
-    <div class="px-2 mb-2" v-else-if="session.joinable && !loggedInPlayer">
+    <div class="px-2 mb-2" v-else-if="session.joinable && !session.loggedInPlayer">
       <button class="btn btn-dark" @click.prevent="addPlayer">
         <i v-if="awaitingAddPlayer" class="fas fa-spinner fa-pulse"></i>
         <span v-else>Join</span>
@@ -185,8 +196,8 @@
       },
 
       displayCards: function () {
-        if (!this.loggedInPlayer) { return [] }
-        return this.session.cards.filter(i => i.playerId === this.loggedInPlayer.id).sort((a,b) => (a[this.sortGroupsBy] > b[this.sortGroupsBy]) ? 1 : -1)
+        if (!this.session.loggedInPlayer) { return [] }
+        return this.session.loggedInPlayer.cards.sort((a,b) => (a[this.sortGroupsBy] > b[this.sortGroupsBy]) ? 1 : -1)
       },
 
       cardGroups: function () {
@@ -210,12 +221,8 @@
         return map[this.groupCardsBy]
       },
 
-      loggedInPlayer: function () {
-        return this.session.players.find(i => i.user.username === this.currentUser.username)
-      },
-
       showActionButton: function () {
-        if (!this.loggedInPlayer) { return false }
+        if (!this.session.loggedInPlayer) { return false }
         return this.session.playable && !this.session.started
       }
 
@@ -223,6 +230,7 @@
 
     methods: {
       isCurrentPlayer: function (player) {
+        if (!this.session.started) { return false }
         if (this.session.completed) { return false }
         return player.id === this.session.currentPlayer.id
       },

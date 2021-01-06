@@ -1,6 +1,8 @@
 module Representers
   class Player < Representers::Base
     def build_object(player)
+      return nil if player.nil?
+
       scalar = {
         id: player.id,
         canPass: player.can_pass?,

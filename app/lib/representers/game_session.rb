@@ -3,14 +3,11 @@ module Representers
     attr_reader :session
 
     def build_object(session)
-      @session = session
-
       scalar = {
         active: session.active?,
         completed: session.completed_at.present?,
         completedAt: session.completed_at&.strftime('%a %e %b %Y %k:%M:%S'),
         completedAtDate: session.completed_at&.strftime('%e %b %Y'),
-        currentPlayer: Representers::Player.(session.current_player, scalar: true),
         joinable: session.joinable?,
         nextActionPrompt: session.next_action_prompt,
         playable: session.playable?,
@@ -27,11 +24,18 @@ module Representers
       }
       return scalar if scalar_only?
 
-      scalar.merge(
+      scalar.merge!(
         cards: Representers::SessionCard.(session.cards),
         game: Representers::Game.(session.game, scalar: true),
         players: Representers::Player.(session.players, scalar: true)
       )
+
+      scalar.merge!(currentPlayer: Representers::Player.(session.current_player, scalar: true)) if session.current_player.present?
+
+      logged_in_player = session.players.find_by(user: user)
+      scalar.merge!(loggedInPlayer: Representers::Player.(logged_in_player)) if logged_in_player.present?
+
+      scalar
     end
   end
 end

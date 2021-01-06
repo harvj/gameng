@@ -74,6 +74,10 @@ class GameSession < ApplicationRecord
     GameSession.played_card_counts_by_name(self, state_name)
   end
 
+  def available_roles
+    game.roles.joins("LEFT JOIN players ON players.role_id = roles.id").where("players.game_session_id = #{id} AND roles.id IS NULL")
+  end
+
   def state_transitions
     frames.where(action: play_sequence).reduce({}) do |result, frame|
       result[frame.action] = frame.created_at_milli

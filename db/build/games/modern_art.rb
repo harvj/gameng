@@ -1,5 +1,5 @@
 class GameBuild::ModernArt < GameBuild::Base
-  STYLE_ATTRS = {
+  CARD_ATTRS = {
     lite_metal:   { color: 'yellow' },
     yoko:         { color: 'light-green' },
     cristin_p:    { color: 'dark-pink' },
@@ -10,7 +10,30 @@ class GameBuild::ModernArt < GameBuild::Base
     sealed:       { icon_class: 'circle' },
     once_around:  { icon_class: 'redo' },
     double:       { icon_class: 'equals' }
-  }
+  }.freeze
+
+  ROLES = [
+    {
+      name: 'berlin',
+      emoji: "\1F1E9"
+    },
+    {
+      name: 'bilbao',
+      emoji: "\1F1EA"
+    },
+    {
+      name: 'new york',
+      emoji: "\1F1FA"
+    },
+    {
+      name: 'paris',
+      emoji: "\1F1EB"
+    },
+    {
+      name: 'tokyo',
+      emoji: "\1F1EF"
+    },
+  ]
 
   def add_game
     game = create_game(name: 'Modern Art', key: 'modern_art', min_players: 3, max_players: 5)
@@ -23,10 +46,14 @@ class GameBuild::ModernArt < GameBuild::Base
           name_sort: name_sort,
           value: value,
           value_sort: value_sort,
-          color: STYLE_ATTRS[name.to_sym][:color],
-          icon_class: STYLE_ATTRS[value.to_sym][:icon_class],
+          color: CARD_ATTRS[name.to_sym][:color],
+          icon_class: CARD_ATTRS[value.to_sym][:icon_class],
         )
       end
+    end
+
+    ROLES.each do |params|
+      create_role(params.merge(game_id: game.id))
     end
   end
 end

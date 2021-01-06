@@ -9,6 +9,7 @@ module Representers
     def initialize(record, options)
       @record = record
       @format = options[:format] || nil
+      @user = options[:user] || nil
       @options = options
     end
 
@@ -18,7 +19,7 @@ module Representers
 
     private
 
-    attr_reader :record, :format, :options
+    attr_reader :record, :format, :options, :user
 
     def process_record
       return 'null' unless record.present?

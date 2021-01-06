@@ -9,12 +9,12 @@ class GameSessionsController < ApplicationController
 
   def update
     updated_session = @game.play_class.(@game_session, current_user).subject
-    @rep_session = Representers::GameSession.(updated_session)
+    @rep_session = Representers::GameSession.(updated_session, user: current_user)
     render json: { status: 'success', content: { session: @rep_session } }
   end
 
   def show
-    @rep_session = Representers::GameSession.(@game_session)
+    @rep_session = Representers::GameSession.(@game_session, user: current_user)
     respond_to do |format|
       format.html
       format.json { render json: { status: 'success', content: { session: @rep_session } } }

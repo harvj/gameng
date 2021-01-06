@@ -6,7 +6,7 @@ class SessionCardsController < ApplicationController
 
   def play
     @session_card.play
-    @rep_session = Representers::GameSession.(@session_card.session)
+    @rep_session = Representers::GameSession.(@session_card.session, user: current_user)
     render json: { status: 'success', content: { session: @rep_session }, errors: [] }
   end
 

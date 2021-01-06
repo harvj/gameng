@@ -9,10 +9,9 @@ module GameBuild
       { name: 'Paul Harvey',      username: 'paul' },
       { name: 'Bob McMurray',     username: 'bob' },
       { name: 'Robert McMurray',  username: 'robert' },
-      { name: 'AJ Stoll',         username: 'aj' },
-      { name: 'Nolan Harvey',     username: 'nolan'},
       { name: 'Mark McMurray',    username: 'mark' },
-      { name: 'Chris Nelsen',     username: 'chris'},
+      { name: 'AJ Stoll',         username: 'aj' },
+      { name: 'Nolan Harvey',     username: 'nolan'}
     ].freeze
 
     def call
@@ -38,6 +37,11 @@ module GameBuild
     def create_card(params)
       log("building Card: #{params}")
       Card.create!(params)
+    end
+
+    def create_role(params)
+      log("building Role: #{params}")
+      Role.create!(params)
     end
   end
 end
