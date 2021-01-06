@@ -5,7 +5,7 @@ module Representers
     def build_object(role)
       {
         id: role.id,
-        img_path: image_path("#{role.name}.png")
+        img_path: image_path("#{role.name}.png"),
         name: role.name
       }
     end
