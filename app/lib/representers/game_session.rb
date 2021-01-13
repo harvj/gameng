@@ -5,6 +5,7 @@ module Representers
     def build_object(session)
       scalar = {
         active: session.active?,
+        archived: session.completed_at.present? && session.completed_at < 2.months.ago,
         completed: session.completed_at.present?,
         completedAt: session.completed_at&.strftime('%a %e %b %Y %k:%M:%S'),
         completedAtDate: session.completed_at&.strftime('%e %b %Y'),

@@ -54,8 +54,12 @@
       <game-session-row v-for="session in completedSessions"
         :key="session.uid"
         :init-session="session"
+        v-if="!session.archived || showArchived"
       >
       </game-session-row>
+      <div class="mt-2">
+        <a href="#" @click.prevent="toggleArchived">{{ showArchived ? 'Hide' : 'Show' }} Archived</a>
+      </div>
     </div>
 
   </div>
@@ -77,7 +81,8 @@
 
     data: function () {
       return {
-        game: this.initGame
+        game: this.initGame,
+        showArchived: false
       }
     },
 
@@ -88,15 +93,21 @@
       }),
 
       activeSessions: function () {
-        return this.game.sessions.filter(i => i.active).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
+        return this.game.sessions.filter(i => i.active).sort((a,b) => (a['createdAt'] < b['createdAt']) ? 1 : -1)
       },
 
       completedSessions: function () {
-        return this.game.sessions.filter(i => i.completed).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
+        return this.game.sessions.filter(i => i.completed).sort((a,b) => (a['createdAt'] < b['createdAt']) ? 1 : -1)
       },
 
       waitingSessions: function () {
-        return this.game.sessions.filter(i => i.waiting).sort((a,b) => (a['createdAt'] > b['createdAt']) ? 1 : -1)
+        return this.game.sessions.filter(i => i.waiting).sort((a,b) => (a['createdAt'] < b['createdAt']) ? 1 : -1)
+      }
+    },
+
+    methods: {
+      toggleArchived: function () {
+        this.showArchived = !this.showArchived
       }
     }
   }

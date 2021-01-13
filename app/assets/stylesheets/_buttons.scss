@@ -12,6 +12,13 @@
     border-color: darken($color, $dark-adj) !important;
   }
   &:disabled, &:disabled:hover {
+    background-color: lighten($color, $light-pct);
+    &:active {
+      background-color: lighten($color, $light-pct) !important;
+      border-color: darken($color, $dark-pct) !important;
+    }
+  }
+  &.deemphasized, &.deemphasized:hover {
     background-color: #fefefe;
     &:active {
       background-color: #fefefe !important;

@@ -130,7 +130,7 @@
         <div class="d-flex flex-row flex-wrap">
           <div v-for="card in group.cards" class="p-1">
             <button
-              :class="`btn btn-primary my-1 ${card.color}`"
+              :class="cardClass(card)"
               :disabled="!card.playable || !isCurrentPlayer(session.loggedInPlayer)"
               @click.prevent="playCard(card)"
             >
@@ -175,7 +175,7 @@
         awaitingPlayerPass: false,
         awaitingPlayerUpdate: false,
         awaitingPlayCard: [],
-        groupCardsBy: 'dealtDuringState',
+        groupCardsBy: 'name',
         session: this.initGameSession,
         sortCardsBy: 'status',
         playerParams: {
@@ -233,6 +233,15 @@
         if (!this.session.started) { return false }
         if (this.session.completed) { return false }
         return player.id === this.session.currentPlayer.id
+      },
+
+      cardClass: function (card) {
+        const result = {
+          'btn btn-primary my-1': true,
+          [card.color]: card.color,
+          'deemphasized': card.played
+        }
+        return result
       },
 
       playerBadgeClass: function (player) {
