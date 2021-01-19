@@ -2,7 +2,8 @@
   <div :id="`session-${session.uid}`">
     <div class="d-flex flex-row justify-content-between">
       <div class="p-2">
-        <h2><a :href="session.game.uri">{{ session.game.name }}</a></h2>
+        <strong><a :href="session.game.uri">{{ session.game.name }}</a></strong>:
+        {{ session.uid }}
       </div>
       <div v-if="showActionButton" class="p-2">
         <button
@@ -13,98 +14,25 @@
           <span v-else>{{ session.nextActionPrompt }}</span>
         </button>
       </div>
+      <div v-else class="p-2">
+        <span v-if="session.completed">completed: {{ session.completedAt }}</span>
+        <span v-else>{{ session.state }}</span>
+      </div>
     </div>
 
-    <div class="session-info">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>session:</td><td>{{ session.uid }}</td>
-          </tr>
-          <tr>
-            <td>started:</td><td>{{ session.startedAt }}</td>
-          </tr>
-          <tr v-if="session.completed">
-            <td>completed:</td><td>{{ session.completedAt }}</td>
-          </tr>
-          <tr v-else>
-            <td>status:</td><td>{{ session.state }}</td>
-          </tr>
-          <tr>
-            <td>players:</td>
-            <td>
-              <div class="d-flex flex-row flex-wrap">
-                <div v-for="player in session.players" :class="playerBadgeClass(player)">
-                  <span v-if="player.turnOrder" class="badge badge-info mr-1">{{ player.turnOrder }}</span>
-                  {{ player.user.name }}
-                  <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="session-info">
+      <div class="d-flex flex-row flex-wrap p-2">
+        <div v-for="player in session.players" :class="playerBadgeClass(player)">
+          <span v-if="player.turnOrder" class="badge badge-info mr-1">{{ player.turnOrder }}</span>
+          {{ player.user.name }}
+          <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
+        </div>
+      </div>
     </div>
+
+    <hr>
 
     <div v-if="session.loggedInPlayer && this.session.started" class="player-field">
-      <div v-if="this.session.completed" class="p-2">
-        <h5>Your Play History</h5>
-        <div class="p-2">
-          <div v-for="frame in session.loggedInPlayer.playHistory" :key="frame.id" class="row">
-            <div class="col-4">{{ frame.state }}</div>
-            <div class="col-6">{{ frame.subject.value }} {{ frame.subject.name }}</div>
-          </div>
-        </div>
-      </div>
-
-
-      <div v-if="!this.session.completed || !session.loggedInPlayer.score" class="p-2">
-        <h5>Actions</h5>
-        <div class="d-flex flex-row">
-          <div v-if="isCurrentPlayer(session.loggedInPlayer)">
-            <div v-if="session.loggedInPlayer.canPass" class="d-flex flex-row flex-wrap">
-              <button
-                class="btn btn-dark my-1"
-                @click.prevent="playerPass(session.loggedInPlayer)"
-              >
-                <span v-if="awaitingPlayerPass">
-                  <i class="fas fa-spinner fa-pulse"></i>
-                </span>
-                <span v-else>Pass</span>
-              </button>
-            </div>
-            <div v-else>
-              Your turn. Click a card below to play it.
-            </div>
-          </div>
-          <div v-else-if="this.session.completed">
-            <div class="form-group row">
-              <div class="col-6">
-                <label for="player-score" class="sr-only">Your Score</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="player-score"
-                  placeholder="Your Score"
-                  v-model="playerParams.score"
-                >
-              </div>
-              <button
-                type="submit"
-                class="btn btn-dark"
-                @click.prevent="playerUpdate(session.loggedInPlayer)"
-              >
-                <span v-if="awaitingPlayerUpdate">
-                  <i class="fas fa-spinner fa-pulse"></i>
-                </span>
-                <span v-else>Submit</span>
-              </button>
-            </div>
-          </div>
-          <div v-else>{{ this.session.currentPlayer.user.name }}'s turn...</div>
-        </div>
-      </div>
-
       <div v-if="displayCards.length > 0" class="d-flex flex-row justify-content-between p-2">
         <div>
           <h5>Your Cards</h5>
@@ -143,6 +71,64 @@
               </span>
             </button>
           </div>
+        </div>
+      </div>
+
+      <div v-if="!this.session.completed || !session.loggedInPlayer.score" class="p-2 mt-2">
+        <div class="d-flex flex-row">
+          <div v-if="isCurrentPlayer(session.loggedInPlayer)">
+            <div v-if="session.loggedInPlayer.canPass" class="d-flex flex-row flex-wrap">
+              <button
+                class="btn btn-dark my-1"
+                @click.prevent="playerPass(session.loggedInPlayer)"
+              >
+                <span v-if="awaitingPlayerPass">
+                  <i class="fas fa-spinner fa-pulse"></i>
+                </span>
+                <span v-else>Pass</span>
+              </button>
+            </div>
+            <div v-else>
+              <span class="font-weight-bold font-italic">Your turn. Click a card above to play it.</span>
+            </div>
+          </div>
+          <div v-else-if="this.session.completed">
+            <div class="form-group row">
+              <div class="col-6">
+                <label for="player-score" class="sr-only">Your Score</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="player-score"
+                  placeholder="Your Score"
+                  v-model="playerParams.score"
+                >
+              </div>
+              <button
+                type="submit"
+                class="btn btn-dark"
+                @click.prevent="playerUpdate(session.loggedInPlayer)"
+              >
+                <span v-if="awaitingPlayerUpdate">
+                  <i class="fas fa-spinner fa-pulse"></i>
+                </span>
+                <span v-else>Submit</span>
+              </button>
+            </div>
+          </div>
+          <div v-else>
+            <span class="font-italic">{{ this.session.currentPlayer.user.name }}'s turn...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="this.session.completed" class="p-2">
+      <h5>Your Play History</h5>
+      <div class="p-2">
+        <div v-for="frame in session.loggedInPlayer.playHistory" :key="frame.id" class="row">
+          <div class="col-4">{{ frame.state }}</div>
+          <div class="col-6">{{ frame.subject.value }} {{ frame.subject.name }}</div>
         </div>
       </div>
     </div>
