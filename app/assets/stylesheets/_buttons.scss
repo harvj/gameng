@@ -1,9 +1,15 @@
 @import 'variables';
 
-@mixin primary-button($color, $dark-pct, $light-pct, $light-adj: 10, $dark-adj: 5) {
-  color: darken($color, $dark-pct);
-  border-color: darken($color, $dark-pct);
-  background-color: lighten($color, $light-pct);
+@mixin primary-button($color, $contrast-pct: 20, $light-pct: 20, $light-adj: 10, $dark-adj: 5, $reverse: null) {
+  @if not ($reverse) {
+    color: darken($color, $contrast-pct);
+    background-color: lighten($color, $light-pct);
+    border-color: darken($color, $contrast-pct);
+  } @else {
+    color: lighten($color, $contrast-pct);
+    background-color: $color;
+    border-color: darken($color, $dark-adj);
+  }
   &:hover {
     background-color: lighten($color, $light-pct - $light-adj);
   }
@@ -15,23 +21,30 @@
     background-color: lighten($color, $light-pct);
     &:active {
       background-color: lighten($color, $light-pct) !important;
-      border-color: darken($color, $dark-pct) !important;
+      border-color: darken($color, $contrast-pct) !important;
     }
   }
   &.deemphasized, &.deemphasized:hover {
+    @if ($reverse) {
+      color: $color;
+    }
     background-color: #fefefe;
     &:active {
       background-color: #fefefe !important;
-      border-color: darken($color, $dark-pct) !important;
+      border-color: darken($color, $contrast-pct) !important;
     }
   }
 }
 
 .btn-primary {
-  &.light-brown  { @include primary-button($light-brown, 50, 20) }
-  &.dark-pink    { @include primary-button($dark-pink, 20, 35, 5) }
+  &.info         { @include primary-button($info, 20, 18, 5) }
+  &.red          { @include primary-button($red, 45, 20, 10, 5, true) }
+  &.dark-pink    { @include primary-button($red, 20, 35, 5) }
+  &.light-orange { @include primary-button($light-orange, 35) }
   &.yellow       { @include primary-button($yellow, 25, 30) }
   &.light-green  { @include primary-button($light-green, 30, 25, -5) }
+  &.blue         { @include primary-button($blue, 60, 20, 10, 5, true) }
   &.light-purple { @include primary-button($light-purple, 20, 10, 5) }
-  &.info         { @include primary-button($info, 20, 18, 5) }
+  &.light-brown  { @include primary-button($light-brown, 50, 20) }
+  &.black        { @include primary-button($black, 90, 20, 10, 5, true) }
 }

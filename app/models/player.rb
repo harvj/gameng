@@ -12,6 +12,15 @@ class Player < ApplicationRecord
   validate :session_not_in_progress, on: :create
   validate :session_not_full, on: :create
 
+  def play(params)
+    SessionFrame::Create.(session,
+      action: "player_#{params[:action]}",
+      acting_player: self,
+      subject: self
+    )
+    session.game_play.player_play(self, params)
+  end
+
   def pass
     SessionFrame::Create.(session,
       action: 'player_passed',

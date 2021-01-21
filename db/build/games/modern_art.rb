@@ -33,6 +33,7 @@ class GameBuild::ModernArt < GameBuild::Base
           value_sort: value_sort,
           color: CARD_ATTRS[name.to_sym][:color],
           icon_class: CARD_ATTRS[value.to_sym][:icon_class],
+          key: 'default'
         )
       end
     end

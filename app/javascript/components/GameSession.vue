@@ -139,6 +139,47 @@
         <span v-else>Join</span>
       </button>
     </div>
+
+    <div v-if="this.session.game.name === 'Pandemic' && this.session.started && !this.session.completed"
+      class="p-2"
+    >
+      <div class="d-flex flex-row flex-wrap">
+        <button class="btn btn-dark px-2"
+          :disabled="!isCurrentPlayer(session.loggedInPlayer)"
+          @click.prevent="playerAction('draw')"
+        >
+          <span v-if="awaitingPlayerAction.includes('draw')">
+            <i class="fas fa-spinner fa-pulse"></i>
+          </span>
+          <span v-else>Draw</span>
+        </button>
+        <button class="btn btn-dark px-2 ml-1"
+          :disabled="!isCurrentPlayer(session.loggedInPlayer)"
+          @click.prevent="playerAction('infect')"
+        >
+          <span v-if="awaitingPlayerAction.includes('infect')">
+            <i class="fas fa-spinner fa-pulse"></i>
+          </span>
+          <span v-else>Infect</span>
+        </button>
+      </div>
+      <div class="pt-3">
+        <h5>Infections</h5>
+        <div class="d-flex flex-row flex-wrap">
+          <div v-for="card in pandemicInfectionDiscards" class="p-1">
+            <button
+              class="btn btn-primary my-1 light-purple"
+              :disabled="true"
+            >
+              <span>
+                <i :class="`fas fa-${card.iconClass}`"></i>
+                {{ card.name }}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -158,12 +199,13 @@
       return {
         awaitingAddPlayer: false,
         awaitingSessionUpdate: false,
+        awaitingPlayerAction: [],
         awaitingPlayerPass: false,
         awaitingPlayerUpdate: false,
         awaitingPlayCard: [],
-        groupCardsBy: 'name',
+        groupCardsBy: this.initGameSession.game.groupCardsBy,
         session: this.initGameSession,
-        sortCardsBy: 'status',
+        sortCardsBy: this.initGameSession.game.sortCardsBy,
         playerParams: {
           score: null
         }
@@ -195,6 +237,12 @@
             }
           }
         )
+      },
+
+      pandemicInfectionDiscards: function () {
+        const deck = this.session.decks.find(d => d.key === 'infection-discard')
+        if (!deck) { return [] }
+        return deck.cards.filter(c => c.discarded).sort((a,b) => b['discardedAt'] - a['discardedAt'])
       },
 
       sortGroupsBy: function () {
@@ -292,7 +340,6 @@
 
       playCard: async function (card) {
         this.awaitingPlayCard.push(card.id)
-        console.log(this.awaitingPlayCard)
         try {
           const response = await this.callEndpoint('PATCH', card.playCardPath, this.updateParams)
           setTimeout(() => {
@@ -305,6 +352,26 @@
         } finally {
           const index = this.awaitingPlayCard.indexOf(card.id)
           this.awaitingPlayCard.splice(index,1)
+        }
+      },
+
+      playerAction: async function (action) {
+        this.awaitingPlayerAction.push(action)
+        const player = this.session.loggedInPlayer
+        let params = this.updateParams
+        params['player_action'] = action
+        try {
+          const response = await this.callEndpoint('PATCH', player.playPath, params)
+          setTimeout(() => {
+            if (response.data.status === 'success') {
+              this.session = response.data.content.session
+            }
+          }, 250)
+        } catch (e) {
+          console.log(e)
+        } finally {
+          const index = this.awaitingPlayerAction.indexOf(action)
+          this.awaitingPlayerAction.splice(index,1)
         }
       },
 
