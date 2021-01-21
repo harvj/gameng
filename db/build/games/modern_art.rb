@@ -13,26 +13,11 @@ class GameBuild::ModernArt < GameBuild::Base
   }.freeze
 
   ROLES = [
-    {
-      name: 'berlin',
-      emoji: "\1F1E9"
-    },
-    {
-      name: 'bilbao',
-      emoji: "\1F1EA"
-    },
-    {
-      name: 'new york',
-      emoji: "\1F1FA"
-    },
-    {
-      name: 'paris',
-      emoji: "\1F1EB"
-    },
-    {
-      name: 'tokyo',
-      emoji: "\1F1EF"
-    },
+    { name: 'berlin' },
+    { name: 'bilbao' },
+    { name: 'new york' },
+    { name: 'paris' },
+    { name: 'tokyo' }
   ]
 
   def add_game
@@ -48,6 +33,7 @@ class GameBuild::ModernArt < GameBuild::Base
           value_sort: value_sort,
           color: CARD_ATTRS[name.to_sym][:color],
           icon_class: CARD_ATTRS[value.to_sym][:icon_class],
+          key: 'default'
         )
       end
     end

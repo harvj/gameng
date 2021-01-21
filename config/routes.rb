@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   resources :players, only: %i(create update) do
     member do
       patch :pass
+      patch :play
     end
   end
 

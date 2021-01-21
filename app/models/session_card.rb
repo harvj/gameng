@@ -8,6 +8,7 @@ class SessionCard < ApplicationRecord
   scope :undealt,  -> { where('dealt_at IS NULL') }
   scope :played,   -> { where('played_at IS NOT NULL') }
   scope :shuffled, -> { order('random()') }
+  scope :active,   -> { where('discarded_at IS NULL') }
 
   def deal(player=nil)
     update_attributes(
@@ -31,6 +32,16 @@ class SessionCard < ApplicationRecord
       subject: self
     )
     session.game_play.card_played(card)
+  end
+
+  def discard(player=nil)
+    update_attribute(:discarded_at, Time.zone.now)
+    SessionFrame::Create.(session,
+      action: 'card_discarded',
+      acting_player: player,
+      subject: self
+    )
+    session.game_play.card_discarded(self)
   end
 
   def status

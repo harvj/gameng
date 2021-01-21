@@ -1,5 +1,5 @@
 class PlayersController < ApplicationController
-  before_action :load_player, only: %i(pass update)
+  before_action :load_player, only: %i(play pass update)
   before_action :load_session, only: %i(create)
 
   def create
@@ -18,6 +18,12 @@ class PlayersController < ApplicationController
       content: { session: Representers::GameSession.(@player.session, user: current_user) },
       errors: player_update.errors
     }
+  end
+
+  def play
+    @player.play(params)
+    @rep_session = Representers::GameSession.(@player.session, user: current_user)
+    render json: { status: 'success', content: { session: @rep_session }, errors: [] }
   end
 
   def pass

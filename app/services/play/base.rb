@@ -8,11 +8,11 @@ class Play::Base
 
   attr_reader :session, :active_user
 
-  delegate :next_action, :players, :frames,
+  delegate :game, :players, :decks, :next_action, :frames,
     to: :session
 
   def call
-    transition_state if session.playable?
+    Game.transaction { transition_state if session.playable? }
     Services::Response.new(subject: session, errors: errors)
   end
 
@@ -29,7 +29,7 @@ class Play::Base
   def started
     active_player.update_attribute(:moderator, true)
     session.start!
-    build_card_decks!
+    build_card_decks
     set_turn_order
   end
 
@@ -59,19 +59,6 @@ class Play::Base
     send(action)
   end
 
-  def build_card_decks!
-    self.class::DECKS.each do |key, attrs|
-      deck = session.decks.create!(key: key)
-      attrs.each do |name, value_counts|
-        value_counts.each do |value, count|
-          count.times do
-            SessionCard::Create.!(deck, card: session.game.cards.find_by(name: name, value: value))
-          end
-        end
-      end
-    end
-  end
-
   def last_card_played
     last_session_card_played&.card
   end
@@ -82,5 +69,28 @@ class Play::Base
 
   def last_card_played_frame
     session.frames.where(subject_type: 'SessionCard', action: 'card_played', state: session.state).last
+  end
+
+  # --- methods to define per game
+
+  def build_card_decks
+  end
+
+  def card_played(_card)
+  end
+
+  def card_discarded(_card)
+  end
+
+  def player_play(_player, _params)
+  end
+
+  def player_pass(_player)
+  end
+
+  def can_pass?(_player)
+  end
+
+  def card_playable?(_card)
   end
 end

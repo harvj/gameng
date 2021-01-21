@@ -27,7 +27,7 @@ module Representers
       return scalar if scalar_only?
 
       scalar.merge!(
-        cards: Representers::SessionCard.(session.cards),
+        decks: Representers::SessionDeck.(session.decks),
         game: Representers::Game.(session.game, scalar: true),
         players: Representers::Player.(session.players, scalar: true)
       )

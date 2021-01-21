@@ -12,6 +12,7 @@ module Representers
         user: Representers::User.(player.user),
         winner: player.winner,
         passPath: pass_player_path(player),
+        playPath: play_player_path(player),
         playerPath: player_path(player)
       }
       return scalar if scalar_only?
