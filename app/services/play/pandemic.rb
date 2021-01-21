@@ -128,9 +128,14 @@ class Play::Pandemic < Play::Base
     case params[:player_action]
     when 'draw'
       2.times do
-        draw_deck.first.deal(player)
+        card = draw_deck.first
+        if card.nil?
+          transition_state and break
+        else
+          card.deal(player)
+        end
       end
-      if epidemic?
+      if epidemic? && !session.completed?
         infection = decks.find_by(key: 'infection')
         new_city = infection.cards.shuffle.first
         new_city.update_attributes(
