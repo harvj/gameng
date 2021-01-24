@@ -40,11 +40,18 @@
   &.info         { @include primary-button($info, 20, 18, 5) }
   &.red          { @include primary-button($red, 45, 20, 10, 5, true) }
   &.dark-pink    { @include primary-button($red, 20, 35, 5) }
-  &.light-orange { @include primary-button($light-orange, 35) }
+  &.light-orange { @include primary-button($light-orange, 25) }
   &.yellow       { @include primary-button($yellow, 25, 30) }
   &.light-green  { @include primary-button($light-green, 30, 25, -5) }
   &.blue         { @include primary-button($blue, 60, 20, 10, 5, true) }
   &.light-purple { @include primary-button($light-purple, 20, 10, 5) }
   &.light-brown  { @include primary-button($light-brown, 50, 20) }
   &.black        { @include primary-button($black, 90, 20, 10, 5, true) }
+}
+
+.player-button {
+  cursor: pointer;
+  &.disabled {
+    cursor: auto;
+  }
 }

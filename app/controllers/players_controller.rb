@@ -21,13 +21,7 @@ class PlayersController < ApplicationController
   end
 
   def play
-    @player.play(params)
-    @rep_session = Representers::GameSession.(@player.session, user: current_user)
-    render json: { status: 'success', content: { session: @rep_session }, errors: [] }
-  end
-
-  def pass
-    @player.pass
+    @player.play(action: params[:player_action], params: play_params)
     @rep_session = Representers::GameSession.(@player.session, user: current_user)
     render json: { status: 'success', content: { session: @rep_session }, errors: [] }
   end
@@ -40,6 +34,10 @@ class PlayersController < ApplicationController
 
   def load_player
     @player = Player.find(params[:id])
+  end
+
+  def play_params
+    params[:player_action].include?('submit') ? params : {}
   end
 
   def player_params

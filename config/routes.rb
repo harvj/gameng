@@ -5,15 +5,11 @@ Rails.application.routes.draw do
 
   resources :players, only: %i(create update) do
     member do
-      patch :pass
       patch :play
     end
   end
 
-  resources :session_cards, only: [] do
-    member do
-      patch :play
-    end
+  resources :session_cards, only: %i(update) do
   end
 
   devise_for :users, controllers: { sessions: 'users/sessions' }

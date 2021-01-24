@@ -14,6 +14,7 @@ module Representers
         nextActionPrompt: session.next_action_prompt,
         playable: session.playable?,
         playerCount: session.players.count,
+        specialGamePhase: session.special_game_phase,
         started: session.started_at.present?,
         startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
         startedAtDate: session.started_at&.strftime('%e %b %Y'),
@@ -27,9 +28,15 @@ module Representers
       return scalar if scalar_only?
 
       scalar.merge!(
-        decks: Representers::SessionDeck.(session.decks),
+        displayCardGroups: session.game_play.display_card_groups.map do |group|
+          {
+            name: group[:name],
+            count: group[:count],
+            cards: Representers::SessionCard.(group[:cards])
+          }
+        end,
         game: Representers::Game.(session.game, scalar: true),
-        players: Representers::Player.(session.players, scalar: true)
+        players: Representers::Player.(session.players)
       )
 
       scalar.merge!(currentPlayer: Representers::Player.(session.current_player, scalar: true)) if session.current_player.present?

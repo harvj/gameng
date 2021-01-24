@@ -8,7 +8,7 @@ class Play::Base
 
   attr_reader :session, :active_user
 
-  delegate :game, :players, :decks, :next_action, :frames,
+  delegate :game, :players, :decks, :next_action, :frames, :current_player,
     to: :session
 
   def call
@@ -35,13 +35,18 @@ class Play::Base
 
   def set_turn_order
     randomized_players = players.shuffle
+    randomized_roles = game.roles.shuffle.first(players.count)
+    first_player = randomized_players[0]
+
     randomized_players.each_with_index do |player, index|
       player.update_attributes!(
+        role: randomized_roles[index],
         turn_order: index + 1,
-        next_player: randomized_players[index + 1] || randomized_players[0]
+        next_player: randomized_players[index + 1] || first_player
       )
     end
-    session.update_attribute(:current_player, randomized_players[0])
+    first_player.start_turn
+    session.update_attribute(:current_player, first_player)
   end
 
   def completed
@@ -76,21 +81,36 @@ class Play::Base
   def build_card_decks
   end
 
+  def display_cards
+    []
+  end
+
   def card_played(_card)
   end
 
   def card_discarded(_card)
   end
 
-  def player_play(_player, _params)
+  def player_action(player, action: nil, params: {})
+    return if !player.possible_actions.include?(action)
+    if params.present?
+      send("player_#{action}", player, params)
+    else
+      send("player_#{action}", player)
+    end
   end
 
-  def player_pass(_player)
+  def start_turn(_player)
   end
 
-  def can_pass?(_player)
+  def end_turn(_player)
   end
 
   def card_playable?(_card)
+    false
+  end
+
+  def card_playable_out_of_turn?(_card)
+    false
   end
 end

@@ -40,6 +40,10 @@ class GameSession < ApplicationRecord
     BEGIN_STATES + play_class::PLAY_SEQUENCE + END_STATES
   end
 
+  def player_actions
+    Hash.new { |h,k| h[k] = [] }.merge(play_class::PLAYER_ACTIONS)
+  end
+
   def start!
     update_attribute(:started_at, Time.zone.now)
   end
@@ -67,7 +71,9 @@ class GameSession < ApplicationRecord
   end
 
   def advance_turn
+    current_player.end_turn
     update_attribute(:current_player, current_player.next_player)
+    current_player.start_turn
   end
 
   def played_card_counts_by_name(state_name)
@@ -91,6 +97,10 @@ class GameSession < ApplicationRecord
     else
       state.titleize
     end
+  end
+
+  def display_cards
+    game_play.display_cards
   end
 
   def waiting?

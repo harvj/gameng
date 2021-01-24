@@ -1,0 +1,21 @@
+@import 'variables';
+
+.badge {
+  &.magenta {
+    color: $white;
+    background-color: $magenta;
+  }
+  &.orange {
+    color: $white;
+    background-color: $orange;
+  }
+  &.green {
+    color: $white;
+    background-color: $green;
+  }
+  &.brown {
+    color: $white;
+    background-color: $brown;
+  }
+  &.white { background-color: $white; }
+}

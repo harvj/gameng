@@ -5,13 +5,17 @@ module Representers
 
       scalar = {
         id: player.id,
-        canPass: player.can_pass?,
+        actionable: player.actionable?,
+        actionPhase: player.action_phase,
+        actionPrompt: player.action_prompt,
+        activeCardCount: player.active_card_count,
         moderator: player.moderator?,
+        possibleActions: player.possible_actions,
+        role: Representers::Role.(player.role),
         score: player.score,
         turnOrder: player.turn_order,
         user: Representers::User.(player.user),
         winner: player.winner,
-        passPath: pass_player_path(player),
         playPath: play_player_path(player),
         playerPath: player_path(player)
       }
