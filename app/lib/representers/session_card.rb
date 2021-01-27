@@ -33,7 +33,8 @@ module Representers
     attr_reader :session_card
 
     def dealt_during_state
-      return unless session_card.dealt?
+      return "Undealt" if !session_card.dealt?
+      return "Unknown" if !session_card.dealt_during_state
       "Dealt #{session_card.dealt_during_state.titleize}"
     end
   end

@@ -192,12 +192,15 @@
     </div>
 
     <!-- Play History -->
-    <div v-if="this.session.completed" class="p-2">
-      <h5>Your Play History</h5>
-      <div class="p-2">
-        <div v-for="frame in session.loggedInPlayer.playHistory" :key="frame.id" class="row">
-          <div class="col-4">{{ frame.state }}</div>
-          <div class="col-6">{{ frame.subject.value }} {{ frame.subject.name }}</div>
+    <div v-if="this.session.completed">
+      <hr>
+      <div class="px-2">
+        <h5>{{ displayPlayerPossessive }} play history</h5>
+        <div>
+          <div v-for="frame in displayPlayer.playHistory" :key="frame.id" class="row">
+            <div class="col-4">{{ frame.state }}</div>
+            <div class="col-6">{{ frame.subject.value }} {{ frame.subject.name }}</div>
+          </div>
         </div>
       </div>
     </div>
