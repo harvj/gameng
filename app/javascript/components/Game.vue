@@ -1,7 +1,7 @@
 <template>
   <div :id="`game-${game.key}`">
 
-    <div class="d-flex flex-row justify-content-between">
+    <div class="d-flex flex-row justify-content-between mt-2">
       <div class="p-2">
         <h2>{{ game.name }}</h2>
       </div>

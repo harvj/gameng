@@ -1,10 +1,10 @@
+@import 'badges';
 @import 'base';
 @import 'buttons';
-
 @import 'views/game';
 
-td.player-badges {
-  .current {
-    background-color: lighten(#17a2b8, 20)
-  }
+.alert-current {
+  background-color: lighten($light-green, 10);
+  border-color: lighten($light-green, 5);
+  color: $white;
 }

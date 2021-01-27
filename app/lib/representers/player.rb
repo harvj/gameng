@@ -5,21 +5,24 @@ module Representers
 
       scalar = {
         id: player.id,
-        canPass: player.can_pass?,
+        actionPhase: player.action_phase,
+        actionPrompt: player.action_prompt,
         moderator: player.moderator?,
+        role: Representers::Role.(player.role),
         score: player.score,
         turnOrder: player.turn_order,
         user: Representers::User.(player.user),
         winner: player.winner,
-        passPath: pass_player_path(player),
         playPath: play_player_path(player),
         playerPath: player_path(player)
       }
       return scalar if scalar_only?
 
       scalar.merge(
-        cards: Representers::SessionCard.(player.cards),
-        playHistory: Representers::SessionFrame.(player.frames.card_played)
+        activeCards: Representers::SessionCard.(player.cards.active),
+        inactiveCards: Representers::SessionCard.(player.cards.inactive),
+        playHistory: Representers::SessionFrame.(player.frames.card_played),
+        possibleActions: player.possible_actions,
       )
     end
   end

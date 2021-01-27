@@ -18,3 +18,7 @@ a { @include link-style($text-color, $text-color-light) }
 
   a { @include link-style($text-color-light, var(--success)) }
 }
+
+.bg-current {
+  background-color: #43d1e8;
+}

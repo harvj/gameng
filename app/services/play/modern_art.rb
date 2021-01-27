@@ -38,18 +38,7 @@ class Play::ModernArt < Play::Base
     transition_state
   end
 
-  def build_card_decks
-    DECKS.each do |params|
-      deck = session.decks.create!(key: 'default')
-      params.each do |name, value_counts|
-        value_counts.each do |value, count|
-          count.times do
-            SessionCard::Create.!(deck, card: session.game.cards.find_by(name: name, value: value))
-          end
-        end
-      end
-    end
-  end
+  # --- State transitions
 
   def season_one
     deck.deal_cards(session.players, CARDS_TO_DEAL[:season_one][session.players.count.to_s])
@@ -66,13 +55,11 @@ class Play::ModernArt < Play::Base
   def season_four
   end
 
-  def card_played(card)
-    if session.played_card_counts_by_name(session.state).any? { |i| i.count >= 5 }
-      transition_state
-      session.advance_turn
-    elsif card.value != 'double'
-      session.advance_turn
-    end
+  # --- Player actions
+
+  def possible_player_actions(player)
+    return ['pass'] if can_pass?(player) && player == current_player
+    []
   end
 
   def player_pass(player)
@@ -88,13 +75,65 @@ class Play::ModernArt < Play::Base
     end
   end
 
+  # --- Card actions
+
+  def card_played(session_card)
+    card = session_card.card
+    if session.played_card_counts_by_state(session.state).any? { |i| i.count >= 5 }
+      transition_state
+      session.advance_turn
+    elsif card.value != 'double'
+      session.advance_turn
+    end
+  end
+
+  # --- Card attributes
+
+  def card_playable?(session_card)
+    card = session_card.card
+    return true if last_card_played_frame.blank?
+    last_card_played.value != 'double' || (card.name == last_card_played.name && card.value != 'double') || session.frames.last.action == 'free_single_double'
+  end
+
+  # --- General game functions
+
+  def build_card_decks
+    DECKS.each do |params|
+      deck = session.decks.create!(key: 'default')
+      params.each do |name, value_counts|
+        value_counts.each do |value, count|
+          count.times do
+            SessionCard::Create.!(deck, card: session.game.cards.find_by(name: name, value: value))
+          end
+        end
+      end
+    end
+  end
+
+  def assign_role(user)
+    return game.roles.find_by(name: 'tokyo') if %w(jim radio).include?(user.username)
+    return game.roles.find_by(name: 'bilbao') if user.username == 'robert'
+    return game.roles.find_by(name: 'new york') if user.username == 'paul'
+    return game.roles.find_by(name: 'berlin') if user.username == 'bob'
+    return game.roles.find_by(name: 'paris') if user.username == 'mark'
+    super
+  end
+
+  # --- Game specific functions
+
   def can_pass?(player)
+    return false if player.inactive?
     return false if last_card_played_frame.blank?
+    return false if session.frames.last&.action == 'free_single_double'
     last_card_played.value == 'double' && session.frames.where(action: 'player_passed', acting_player: player).where('created_at > ?', last_card_played_frame.created_at).blank?
   end
 
-  def card_playable?(card)
-    return true if last_card_played_frame.blank?
-    last_card_played.value != 'double' || (card.name == last_card_played.name && card.value != 'double') || session.frames.last.action == 'free_single_double'
+  # --- Action prompts
+
+  def player_action_prompts(action_phase)
+    prompts = {
+      active: "Your turn...",
+    }
+    prompts[action_phase.to_sym]
   end
 end

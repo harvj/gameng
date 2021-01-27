@@ -5,6 +5,7 @@ module Representers
       deck = session_card.session_deck
       card = session_card.card
       {
+        active: session_card.active?,
         color: card.color,
         dealt: session_card.dealt?,
         dealtAt: session_card.dealt_at_milli,
@@ -16,14 +17,16 @@ module Representers
         id: session_card.id,
         name: card.name.titleize,
         nameSort: card.name_sort,
-        playable: session_card.playable?,
-        playCardPath: play_session_card_path(session_card),
+        playableOutOfTurn: session_card.playable_out_of_turn?,
         played: session_card.played?,
         playedAt: session_card.played_at_milli,
         playerId: session_card.player_id,
         status: session_card.status.titleize,
+        tradeable: session_card.tradeable?,
+        validAction: session_card.valid_action,
         value: card.value.titleize,
-        valueSort: card.value_sort
+        valueSort: card.value_sort,
+        updatePath: session_card_path(session_card)
       }
     end
 

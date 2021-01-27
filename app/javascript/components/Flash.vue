@@ -41,7 +41,7 @@
 
     methods: {
       messageClass: function (message) {
-        return `d-flex justify-content-between alert alert-${this.messageType(message.status)}`
+        return `d-flex justify-content-between alert alert-${this.messageType(message.status)} mb-0 py-2`
       },
 
       messageType: function (status) {
