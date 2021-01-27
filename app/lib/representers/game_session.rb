@@ -41,7 +41,7 @@ module Representers
         players: Representers::Player.(session.players)
       )
 
-      scalar.merge!(currentPlayer: Representers::Player.(session.current_player, scalar: true)) if session.current_player.present?
+      scalar.merge!(currentPlayerId: session.current_player.id, currentPlayerName: session.current_player.user.name) if session.current_player.present?
 
       logged_in_player = session.players.find_by(user: user)
       scalar.merge!(loggedInPlayer: Representers::Player.(logged_in_player)) if logged_in_player.present?

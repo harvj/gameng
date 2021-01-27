@@ -2,11 +2,11 @@
   <div :id="`session-${session.uid}`">
 
     <!-- Player Prompt -->
-    <div v-if="session.started && !session.completed" :class="promptClass">
+    <div v-if="session.started && !session.completed && playerPrompt" :class="promptClass">
       <span v-if="session.loggedInPlayer.actionPhase !== 'inactive'" class="font-italic px-2">
         {{ playerPrompt }}
       </span>
-      <span v-else class="font-italic px-2">{{ this.session.currentPlayer.user.name }}'s turn...</span>
+      <span v-else class="font-italic px-2">{{ this.session.currentPlayerName }}'s turn...</span>
     </div>
 
     <!-- Session Info -->
@@ -50,7 +50,7 @@
     </div>
 
     <!-- Score Form -->
-    <div v-if="this.session.promptForPlayerScore && !session.loggedInPlayer.score" class="d-flex flex-row p-2 mt-2">
+    <div v-if="this.session.promptForPlayerScore && session.loggedInPlayer && !session.loggedInPlayer.score" class="d-flex flex-row p-2 mt-2">
       <div class="form-group row">
         <div class="col-6">
           <label for="player-score" class="sr-only">Your Score</label>
@@ -91,7 +91,7 @@
       <!-- -- Card title and player action buttons -->
       <div :class="`row justify-content-${session.allowDisplayPlayerSwitching ? 'between' : 'end'}`">
         <h5 v-if="session.allowDisplayPlayerSwitching" class="pl-3">{{ displayPlayerPossessive }} cards</h5>
-        <div class="d-flex flex-row flex-wrap justify-content-end pr-2">
+        <div v-if="displayingLoggedInPlayer" class="d-flex flex-row flex-wrap justify-content-end pr-2">
           <div v-for="action, index in session.loggedInPlayer.possibleActions"
             class="mr-1"
             v-if="showPlayerActionButton(action)"
@@ -231,7 +231,7 @@
         awaitingPlayerUpdate: false,
         awaitingSessionUpdate: false,
         showInactiveCards: this.initGameSession.showInactiveCards,
-        displayPlayer: this.initGameSession.loggedInPlayer,
+        displayPlayer: this.initGameSession.loggedInPlayer || this.initGameSession.players.find(p => p.id === this.initGameSession.currentPlayerId),
         groupCardsBy: this.initGameSession.game.groupCardsBy,
         sortCardsBy: this.initGameSession.game.sortCardsBy,
         playerParams: {},
@@ -247,7 +247,7 @@
     },
 
     computed: {
-      ...mapGetters(['currentUser', 'token', 'paths']),
+      ...mapGetters(['token', 'paths']),
 
       updateParams: function () {
         return {
@@ -264,7 +264,8 @@
       },
 
       promptClass: function () {
-      const specialClass = this.session.specialGamePhase || ['trade', 'discard'].includes(this.session.loggedInPlayer.actionPhase)
+        if (!this.session.loggedInPlayer) { return }
+        const specialClass = this.session.specialGamePhase || ['trade', 'discard'].includes(this.session.loggedInPlayer.actionPhase)
         return {
           'alert py-1 mb-0': true,
           'alert-secondary': !specialClass && !this.isCurrentPlayer(this.session.loggedInPlayer),
@@ -274,6 +275,7 @@
       },
 
       playerPrompt: function () {
+        if (!this.session.loggedInPlayer) { return }
         if (this.session.loggedInPlayer.actionPhase === 'trade' && (this.cardParams.id || this.playerParams.id)) {
           return `Trade ${this.cardParams.name || 'a card'} to ${this.playerParams.user ? this.playerParams.user.name : 'another player'}...`
         } else {
@@ -314,7 +316,7 @@
       isCurrentPlayer: function (player) {
         if (!this.session.started) { return false }
         if (this.session.completed) { return false }
-        return player.id === this.session.currentPlayer.id
+        return player.id === this.session.currentPlayerId
       },
 
       // Player buttons
@@ -345,7 +347,9 @@
       },
 
       cardButtonDisabled: function (card) {
-        if (this.session.loggedInPlayer.actionPhase === 'trade') {
+        if (!this.session.loggedInPlayer) {
+          return true
+        } else if (this.session.loggedInPlayer.actionPhase === 'trade') {
           return !card.tradeable
         } else if (this.session.loggedInPlayer.actionPhase === 'discard') {
           return !card.active
@@ -358,6 +362,7 @@
       // Player action buttons
 
       playerActionButtonClass: function (index) {
+        if (!this.displayingLoggedInPlayer) { return }
         let count = this.session.loggedInPlayer.possibleActions.length
         return {
           'btn': true,
@@ -419,7 +424,7 @@
       // Button click handlers
 
       handleCardClick: function (card) {
-        if (this.session.loggedInPlayer.actionPhase === 'trade') {
+        if (this.session.loggedInPlayer && this.session.loggedInPlayer.actionPhase === 'trade') {
           this.cardParams = card
         } else {
           this.cardAction(card)
@@ -427,7 +432,7 @@
       },
 
       handlePlayerClick: function (player) {
-        if (this.session.loggedInPlayer.actionPhase === 'trade') {
+        if (this.session.loggedInPlayer && this.session.loggedInPlayer.actionPhase === 'trade') {
           this.playerParams = player
         } else {
           this.displayPlayer = player

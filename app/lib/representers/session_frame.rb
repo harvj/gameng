@@ -3,10 +3,10 @@ module Representers
     def build_object(frame)
       result = {
         id: frame.id,
-        action: frame.action.titleize,
+        action: frame.action&.titleize,
         actingPlayer: Representers::Player.(frame.acting_player, scalar: true),
         affectedPlayer: Representers::Player.(frame.affected_player, scalar: true),
-        state: frame.state.titleize
+        state: frame.state&.titleize
       }
 
       result.merge!(
