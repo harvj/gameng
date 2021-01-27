@@ -5,12 +5,9 @@ module Representers
 
       scalar = {
         id: player.id,
-        actionable: player.actionable?,
         actionPhase: player.action_phase,
         actionPrompt: player.action_prompt,
-        activeCardCount: player.active_card_count,
         moderator: player.moderator?,
-        possibleActions: player.possible_actions,
         role: Representers::Role.(player.role),
         score: player.score,
         turnOrder: player.turn_order,
@@ -22,8 +19,10 @@ module Representers
       return scalar if scalar_only?
 
       scalar.merge(
-        cards: Representers::SessionCard.(player.cards),
-        playHistory: Representers::SessionFrame.(player.frames.card_played)
+        activeCards: Representers::SessionCard.(player.cards.active),
+        inactiveCards: Representers::SessionCard.(player.cards.inactive),
+        playHistory: Representers::SessionFrame.(player.frames.card_played),
+        possibleActions: player.possible_actions,
       )
     end
   end

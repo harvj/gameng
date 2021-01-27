@@ -27,30 +27,13 @@ class Play::Base
   end
 
   def started
-    active_player.update_attribute(:moderator, true)
-    session.start!
+    session.update_attribute(:started_at, Time.zone.now)
     build_card_decks
     set_turn_order
   end
 
-  def set_turn_order
-    randomized_players = players.shuffle
-    randomized_roles = game.roles.shuffle.first(players.count)
-    first_player = randomized_players[0]
-
-    randomized_players.each_with_index do |player, index|
-      player.update_attributes!(
-        role: randomized_roles[index],
-        turn_order: index + 1,
-        next_player: randomized_players[index + 1] || first_player
-      )
-    end
-    first_player.start_turn
-    session.update_attribute(:current_player, first_player)
-  end
-
   def completed
-    session.complete!
+    session.update_attribute(:completed_at, Time.zone.now)
   end
 
   def transition_state
@@ -76,20 +59,7 @@ class Play::Base
     session.frames.where(subject_type: 'SessionCard', action: 'card_played', state: session.state).last
   end
 
-  # --- methods to define per game
-
-  def build_card_decks
-  end
-
-  def display_cards
-    []
-  end
-
-  def card_played(_card)
-  end
-
-  def card_discarded(_card)
-  end
+  # --- Player actions
 
   def player_action(player, action: nil, params: {})
     return if !player.possible_actions.include?(action)
@@ -100,17 +70,101 @@ class Play::Base
     end
   end
 
-  def start_turn(_player)
+  def player_start_turn(player)
+    player.update_attribute(:action_phase, 'active')
   end
 
-  def end_turn(_player)
+  def player_end_turn(player)
+    player.update_attribute(:action_phase, 'inactive')
   end
 
-  def card_playable?(_card)
+  # --- Player attributes
+
+  def player_action_prompt(player)
+    return unless session.started? && session.current_player
+    return "#{session.current_player.user.name}'s turn..." if player.inactive?
+    return special_game_phase_prompt if special_game_phase_prompt.present?
+    player_action_prompts(player.action_phase)
+  end
+
+  # --- Card actions
+
+  def card_played(_session_card)
+  end
+
+  def card_discarded(_session_card)
+  end
+
+  def card_dealt(_session_card)
+  end
+
+  # --- Card attributes
+
+  def card_playable?(_session_card)
     false
   end
 
-  def card_playable_out_of_turn?(_card)
+  def card_playable_out_of_turn?(_session_card)
     false
+  end
+
+  def card_discardable?(_session_card)
+    false
+  end
+
+  def card_tradeable?(_session_card)
+    false
+  end
+
+  def card_valid_action(_session_card)
+    nil
+  end
+
+  # --- General game functions
+
+  def assign_role(_user)
+    session.available_roles.shuffle.first
+  end
+
+  def build_card_decks
+  end
+
+  def set_turn_order
+    randomized_players = players.shuffle
+    first_player = randomized_players[0]
+
+    randomized_players.each_with_index do |player, index|
+      player.update_attributes!(
+        turn_order: index + 1,
+        next_player: randomized_players[index + 1] || first_player
+      )
+    end
+    first_player.start_turn
+    session.update_attribute(:current_player, first_player)
+  end
+
+  def special_game_phase?
+    false
+  end
+
+  def special_game_phase_prompt
+  end
+
+  # --- Session attributes
+
+  def display_card_groups
+    []
+  end
+
+  def allow_display_player_switching?
+    false
+  end
+
+  def show_inactive_cards?
+    false
+  end
+
+  def prompt_for_player_score?
+    true
   end
 end

@@ -10,7 +10,7 @@ class SessionCardsController < ApplicationController
   private
 
   def valid_actions
-    %w(discard play)
+    %w(discard play deal)
   end
 
   def load_session_card

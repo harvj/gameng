@@ -35,13 +35,13 @@ class Play::Pandemic < Play::Base
     INIT_DEAL_COUNTS[players.count.to_s]
   end
 
-  def infection_count
-    INFECTION_DEAL_COUNTS[epidemic_count.to_s]
-  end
+  # --- Player actions
 
   def possible_player_actions(player)
     return [] if resilient_pop?
-    PLAYER_ACTIONS[player.action_phase.to_sym]
+    actions = PLAYER_ACTIONS[player.action_phase.to_sym]
+    actions = actions.reject { |action| action == 'infect' } if forecast?
+    actions
   end
 
   def player_draw(player)
@@ -53,8 +53,10 @@ class Play::Pandemic < Play::Base
       end
     end
     player.update_attribute(:action_phase, 'infect')
+
     if epidemic?
       session.cards.by_card_key('epidemic').active.last&.discard(player)
+      reset_forecast if forecast?
       if !session.completed?
         new_city = decks.find_by(key: 'infection').cards.shuffle.first
         new_city.deal
@@ -72,11 +74,7 @@ class Play::Pandemic < Play::Base
     if one_quiet_night?
       session.update_attribute(:special_game_phase, nil)
     else
-      infection_count.times do
-        infecting_city = deck_cards('infection').first
-        infecting_city.deal
-        infecting_city.update_attribute(:session_deck, decks.find_by(key: "infection-#{epidemic_count}"))
-      end
+      infect_next(infection_count)
     end
     session.advance_turn
   end
@@ -102,32 +100,24 @@ class Play::Pandemic < Play::Base
     player.update_attribute(:action_phase, player.action_phase_revert)
   end
 
-  def player_actionable?(player)
-    return false if !session.started? || session.completed?
-    current_player&.action_phase == 'trade' && player != current_player
+  def player_start_turn(player)
+    player.update_attribute(:action_phase, 'draw')
   end
 
-  def card_dealt(session_card)
-    session_card.update_attribute(:session_deck, decks.find_by(key: "infection-#{epidemic_count}")) if session_card.card.key == 'infection'
-  end
+  # --- Card actions
 
   def card_played(session_card)
     card = session_card.card
     case card.name
-    when 'resilient pop', 'one quiet night'
+    when 'resilient pop', 'one quiet night', 'forecast'
       session.update_attribute(:special_game_phase, card.name)
     end
+    if forecast?
+      forecast_deck = decks.create(key: 'forecast')
+      cards = deck_cards('infection').first(6)
+      cards.each { |card| card.update_attribute(:session_deck, forecast_deck) }
+    end
     check_hand_limit(session_card.player)
-  end
-
-  def card_playable?(card)
-    return false if resilient_pop?
-    return false if current_player.action_phase == 'infect' && card.value != 'special'
-    card.key === 'player'
-  end
-
-  def card_playable_out_of_turn?(card)
-    card.value == 'special'
   end
 
   def card_discarded(session_card)
@@ -136,6 +126,34 @@ class Play::Pandemic < Play::Base
     else
       check_hand_limit(session_card.player)
     end
+  end
+
+  def card_dealt(session_card)
+    if session_card.card.key == 'infection'
+      session_card.update_attribute(:session_deck, decks.find_by(key: "infection-#{epidemic_count}"))
+      if forecast?
+        session.update_attribute(:special_game_phase_timer, session.special_game_phase_timer + 1)
+        if forecast_deck.empty?
+          reset_forecast
+        elsif session.special_game_phase_timer == infection_count
+          session.advance_turn
+        end
+      end
+    end
+  end
+
+  # --- Card attributes
+
+  def card_playable?(session_card)
+    card = session_card.card
+    return false if resilient_pop?
+    return false if current_player.action_phase == 'infect' && card.value != 'special'
+    card.key === 'player'
+  end
+
+  def card_playable_out_of_turn?(session_card)
+    card = session_card.card
+    card.value == 'special'
   end
 
   def card_discardable?(session_card)
@@ -149,16 +167,28 @@ class Play::Pandemic < Play::Base
     false
   end
 
-  def card_tradeable?(card)
+  def card_tradeable?(session_card)
+    card = session_card.card
     card.key == 'player' && card.value != 'special'
   end
 
-  def start_turn(player)
-    player.update_attribute(:action_phase, 'draw')
+  def card_valid_action(session_card)
+    return 'deal' if forecast? && session_card.session_deck.key == 'forecast' && session.current_player.action_phase == 'infect'
+    nil
   end
 
-  def end_turn(player)
-    player.update_attribute(:action_phase, 'inactive')
+  # --- General game functions
+
+  def build_card_decks
+    create_infection_decks
+    deal_initial_cards
+    create_draw_decks
+  end
+
+  # --- Game specific functions
+
+  def infection_count
+    INFECTION_DEAL_COUNTS[epidemic_count.to_s]
   end
 
   def check_hand_limit(player)
@@ -172,10 +202,23 @@ class Play::Pandemic < Play::Base
     end
   end
 
-  def build_card_decks
-    create_infection_decks
-    deal_initial_cards
-    create_draw_decks
+  def infect_next(count=1)
+    count.times do
+      infecting_city = deck_cards('infection').first
+      infecting_city.deal
+      infecting_city.update_attribute(:session_deck, decks.find_by(key: "infection-#{epidemic_count}"))
+    end
+  end
+
+  def reset_forecast
+    if forecast_deck.empty?
+      infect_next(infection_count - session.special_game_phase_timer) if infection_count > session.special_game_phase_timer
+    else
+      fake_forecast_placement = decks.create(key: "infection-#{epidemic_count - 1}-forecast")
+      forecast_deck.each { |card| card.update_attribute(:session_deck, fake_forecast_placement) }
+    end
+    session.update_attributes(special_game_phase: nil, special_game_phase_timer: 0)
+    session.advance_turn
   end
 
   def create_infection_decks
@@ -211,15 +254,34 @@ class Play::Pandemic < Play::Base
     end
   end
 
+  # --- Session attributes
+
   def display_card_groups
-    result = [
-      { name: 'infections', cards: infected },
-      { name: 'draw deck', count: deck_cards('draw').count, cards: [] }
-    ]
+    result = []
+
+    if forecast_deck.any?
+      result << { name: 'forecast', cards: forecast_deck }
+    end
+    result << { name: 'infections', count: infected.count, cards: infected }
+    result << { name: 'draw deck', count: deck_cards('draw').count, cards: [] }
+
     if res_pop = session.cards.by_card_key('infection').discarded.first
       result << { name: 'resilient population', cards: [res_pop] }
     end
+
     result
+  end
+
+  def show_inactive_cards?
+    epidemic? && %w(infect discard).include?(current_player.action_phase)
+  end
+
+  def allow_display_player_switching?
+    true
+  end
+
+  def prompt_for_player_score?
+    false
   end
 
   # --- Queries
@@ -230,6 +292,10 @@ class Play::Pandemic < Play::Base
 
   def infected
     session.cards.by_card_key('infection').active.order('dealt_at DESC')
+  end
+
+  def forecast_deck
+    session.cards.by_deck_key('forecast')
   end
 
   def deck_cards(key)
@@ -272,6 +338,12 @@ class Play::Pandemic < Play::Base
     ).select { |c| c.name == 'epidemic' }.present?
   end
 
+  # --- Game special phases
+
+  def special_game_phase?
+    resilient_pop? || one_quiet_night? || forecast?
+  end
+
   def resilient_pop?
     session.special_game_phase == 'resilient pop'
   end
@@ -280,22 +352,30 @@ class Play::Pandemic < Play::Base
     session.special_game_phase == 'one quiet night'
   end
 
-  def player_action_prompt(player)
-    return unless session.started? && session.current_player
-    if player.inactive?
-      "#{session.current_player.user.name}'s turn..."
-    elsif resilient_pop?
-      "Resilient population... Choose an infected city to discard..."
-    elsif one_quiet_night?
-      "One quiet night... Next infection will not deal cards..."
-    elsif player.action_phase == 'draw'
-      "Your turn. Choose cards to play or draw 2..."
-    elsif player.action_phase == 'trade'
-      "Trading... Click a card and a player to trade it to..."
-    elsif player.action_phase == 'discard'
-      "Hand limit reached... click cards to discard or play specials..."
-    else
-      "Your turn to infect..."
-    end
+  def forecast?
+    session.special_game_phase == 'forecast'
+  end
+
+  # --- Action prompts
+
+  def special_game_phase_prompt
+    return unless special_game_phase?
+    return if forecast? && current_player.action_phase != 'infect'
+    prompts = {
+      forecast: "Infect #{infection_count}... Choose from the Forecast group to infect...",
+      one_quiet_night: "One quiet night... Next infection will not deal cards...",
+      resilient_pop: "Resilient population... Choose an infected city to discard..."
+    }
+    prompts[session.special_game_phase.tr(' ','_').to_sym]
+  end
+
+  def player_action_prompts(action_phase)
+    prompts = {
+      draw: "Your turn. Choose cards to play or draw 2...",
+      trade: "Trading... Click a card and a player to trade it to...",
+      discard: "Hand limit reached... click cards to discard or play specials...",
+      infect: "Your turn to infect #{infection_count}..."
+    }
+    prompts[action_phase.to_sym]
   end
 end

@@ -24,29 +24,21 @@ class Player < ApplicationRecord
     end
   end
 
-  def active_card_count
-    cards.active.count
+  def start_turn
+    session.game_play.player_start_turn(self)
+  end
+
+  def end_turn
+    session.game_play.player_end_turn(self)
   end
 
   def action_prompt
     session.game_play.player_action_prompt(self)
   end
 
-  def actionable?
-    session.game_play.player_actionable?(self)
-  end
-
   def possible_actions
     return [] if session.completed?
     session.game_play.possible_player_actions(self)
-  end
-
-  def start_turn
-    session.game_play.start_turn(self)
-  end
-
-  def end_turn
-    session.game_play.end_turn(self)
   end
 
   def can_pass?

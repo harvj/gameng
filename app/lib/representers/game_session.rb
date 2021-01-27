@@ -5,6 +5,7 @@ module Representers
     def build_object(session)
       scalar = {
         active: session.active?,
+        allowDisplayPlayerSwitching: session.allow_display_player_switching?,
         archived: session.completed_at.present? && session.completed_at < 2.months.ago,
         completed: session.completed_at.present?,
         completedAt: session.completed_at&.strftime('%a %e %b %Y %k:%M:%S'),
@@ -14,12 +15,13 @@ module Representers
         nextActionPrompt: session.next_action_prompt,
         playable: session.playable?,
         playerCount: session.players.count,
+        promptForPlayerScore: session.prompt_for_player_score?,
+        showInactiveCards: session.show_inactive_cards?,
         specialGamePhase: session.special_game_phase,
         started: session.started_at.present?,
         startedAt: session.started_at&.strftime('%a %e %b %Y %k:%M:%S'),
         startedAtDate: session.started_at&.strftime('%e %b %Y'),
         state: session.display_state,
-        stateTransitions: session.state_transitions,
         terms: session.play_class::TERMS,
         uid: session.uid,
         uri: game_session_path(session.uid),
@@ -28,7 +30,7 @@ module Representers
       return scalar if scalar_only?
 
       scalar.merge!(
-        displayCardGroups: session.game_play.display_card_groups.map do |group|
+        displayCardGroups: session.display_card_groups.map do |group|
           {
             name: group[:name],
             count: group[:count],

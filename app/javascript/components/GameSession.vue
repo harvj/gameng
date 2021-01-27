@@ -38,51 +38,59 @@
         :disabled="playerButtonDisabled(player)"
       >
         <span v-if="player.turnOrder" class="badge badge-secondary mr-1">{{ player.turnOrder }}</span>
-        <span v-if="isCurrentPlayer(player)">
-          <i class="fas fa-user-clock"></i>
-        </span>
+        <i v-if="isCurrentPlayer(player)" class="fas fa-user-clock"></i>
+        <i v-if="player.winner" class="fas fa-trophy"></i>
         {{ player.user.name }}
-        <span v-if="player.role" :class="`badge ${player.role.color} mr-1`">{{ titleize(player.role.name)[0] }}</span>
+        <span v-if="player.role">
+          <img v-if="player.role.imagePath" :src="player.role.imagePath" height="24"></img>
+          <span v-else :class="`badge ${player.role.color} mr-1`">{{ titleize(player.role.name)[0] }}</span>
+        </span>
         <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
       </button>
     </div>
 
     <!-- Score Form -->
-    <div v-if="!this.session.completed || !session.loggedInPlayer.score" class="p-2 mt-2">
-      <div class="d-flex flex-row">
-        <div v-if="this.session.completed">
-          <div class="form-group row">
-            <div class="col-6">
-              <label for="player-score" class="sr-only">Your Score</label>
-              <input
-                type="text"
-                class="form-control"
-                id="player-score"
-                placeholder="Your Score"
-                v-model="playerParams.score"
-              >
-            </div>
-            <button
-              type="submit"
-              class="btn btn-dark"
-              @click.prevent="playerUpdate(session.loggedInPlayer)"
-            >
-              <span v-if="awaitingPlayerUpdate">
-                <i class="fas fa-spinner fa-pulse"></i>
-              </span>
-              <span v-else>Submit</span>
-            </button>
-          </div>
+    <div v-if="this.session.promptForPlayerScore && !session.loggedInPlayer.score" class="d-flex flex-row p-2 mt-2">
+      <div class="form-group row">
+        <div class="col-6">
+          <label for="player-score" class="sr-only">Your Score</label>
+          <input
+            type="text"
+            class="form-control"
+            id="player-score"
+            placeholder="Your Score"
+            v-model="playerParams.score"
+          >
         </div>
+        <button
+          type="submit"
+          class="btn btn-dark"
+          @click.prevent="playerUpdate(session.loggedInPlayer)"
+        >
+          <span v-if="awaitingPlayerUpdate">
+            <i class="fas fa-spinner fa-pulse"></i>
+          </span>
+          <span v-else>Submit</span>
+        </button>
       </div>
     </div>
 
     <hr>
 
+    <!-- Join Button -->
+    <div class="px-2 mb-2" v-if="session.joinable && !session.loggedInPlayer">
+      <button class="btn btn-dark" @click.prevent="addPlayer">
+        <i v-if="awaitingAddPlayer" class="fas fa-spinner fa-pulse"></i>
+        <span v-else>Join</span>
+      </button>
+    </div>
+
     <!-- Display Player Cards and Actions -->
     <div v-if="displayPlayer && this.session.started" class="container px-2">
-      <div class="row justify-content-between">
-        <h5 class="pl-3">{{ displayPlayerPossessive }} cards</h5>
+
+      <!-- -- Card title and player action buttons -->
+      <div :class="`row justify-content-${session.allowDisplayPlayerSwitching ? 'between' : 'end'}`">
+        <h5 v-if="session.allowDisplayPlayerSwitching" class="pl-3">{{ displayPlayerPossessive }} cards</h5>
         <div class="d-flex flex-row flex-wrap justify-content-end pr-2">
           <div v-for="action, index in session.loggedInPlayer.possibleActions"
             class="mr-1"
@@ -99,12 +107,14 @@
           </div>
         </div>
       </div>
+
+      <!-- -- Card count and card display options -->
       <div class="row justify-content-between">
         <div class="pl-3">
-          <h1 class="d-inline-block">{{ displayPlayer.activeCardCount }}</h1>
+          <h1 class="d-inline-block">{{ displayPlayer.activeCards.length }}</h1>
           <span>cards in hand</span>
         </div>
-        <div class="pt-3 pr-3" v-if="sortedDisplayPlayerCards.length > 0">
+        <div class="pt-3 pr-3" v-if="displayPlayer.activeCards.length > 0 || displayPlayer.inactiveCards.length > 0">
           <span class="align-bottom">grouped by:</span>
           <a href="#" @click.prevent="changeCardGrouping">
             {{ session.terms[groupCardsBy] }}
@@ -116,25 +126,38 @@
         </div>
       </div>
 
-      <div class="d-flex flex-row" v-for="group in cardGroups" :key="group.title">
-        <div class="align-self-top">
-          <div class="badge badge-light p-2 mt-2">{{ group.title }}</div>
-        </div>
-        <div class="d-flex flex-row flex-wrap">
-          <div v-for="card in group.cards" class="ml-2">
-            <button
-              :class="cardClass(card)"
-              :disabled="cardButtonDisabled(card)"
-              @click.prevent="handleCardClick(card)"
-            >
-              <span v-if="awaitingCardAction.includes(card.id)">
-                <i class="fas fa-spinner fa-pulse"></i>
-              </span>
-              <span v-else>
-                <i :class="`fas fa-${card.iconClass}`"></i>
-                {{ card.name }}
-              </span>
-            </button>
+      <!-- -- Card buttons -->
+      <div v-for="cardGroup, index in [activeCards, inactiveCards]">
+        <h6 class="mt-4" v-if="index === 1">
+          <a href="#" @click.prevent="toggleInactiveCards">
+            <span v-if="!showInactiveCards">Show</span>
+            <span>Inactive Cards</span>
+          </a>
+        </h6>
+        <div class="d-flex flex-row"
+          v-for="group in cardGroup"
+          v-if="index === 0 || showInactiveCards"
+          :key="group.title"
+        >
+          <div class="align-self-top">
+            <div class="badge badge-light p-2 mt-2">{{ group.title }}</div>
+          </div>
+          <div class="d-flex flex-row flex-wrap">
+            <div v-for="card in group.cards" class="ml-2">
+              <button
+                :class="cardClass(card)"
+                :disabled="cardButtonDisabled(card)"
+                @click.prevent="handleCardClick(card)"
+              >
+                <span v-if="awaitingCardAction.includes(card.id)">
+                  <i class="fas fa-spinner fa-pulse"></i>
+                </span>
+                <span v-else>
+                  <i :class="`fas fa-${card.iconClass}`"></i>
+                  {{ card.name }}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -146,16 +169,19 @@
       <div v-for="group in session.displayCardGroups" class="pt-3">
         <h5>
           <span>{{ titleize(group.name) }}</span>
-          <span v-if="group.count" class="text-muted">{{ group.count }}</span>
+          <span v-if="group.hasOwnProperty('count')" class="text-muted">{{ group.count }}</span>
         </h5>
         <div class="d-flex flex-row flex-wrap">
           <div v-for="card in group.cards">
             <button
               class="btn btn-primary mr-2 mb-2 light-purple"
-              :disabled="!(card.validAction && (isCurrentPlayer(session.loggedInPlayer) || card.playableOutOfTurn))"
-              @click.prevent="cardAction(card)"
+              :disabled="cardButtonDisabled(card)"
+              @click.prevent="handleCardClick(card)"
             >
-              <span>
+              <span v-if="awaitingCardAction.includes(card.id)">
+                <i class="fas fa-spinner fa-pulse"></i>
+              </span>
+              <span v-else>
                 <i :class="`fas fa-${card.iconClass}`"></i>
                 {{ card.name }}
               </span>
@@ -175,14 +201,6 @@
         </div>
       </div>
     </div>
-
-    <div class="px-2 mb-2" v-else-if="session.joinable && !session.loggedInPlayer">
-      <button class="btn btn-dark" @click.prevent="addPlayer">
-        <i v-if="awaitingAddPlayer" class="fas fa-spinner fa-pulse"></i>
-        <span v-else>Join</span>
-      </button>
-    </div>
-
 
   </div>
 </template>
@@ -209,6 +227,7 @@
         awaitingPlayerPass: false,
         awaitingPlayerUpdate: false,
         awaitingSessionUpdate: false,
+        showInactiveCards: this.initGameSession.showInactiveCards,
         displayPlayer: this.initGameSession.loggedInPlayer,
         groupCardsBy: this.initGameSession.game.groupCardsBy,
         sortCardsBy: this.initGameSession.game.sortCardsBy,
@@ -220,6 +239,7 @@
     watch: {
       session: function (updatedSession) {
         this.displayPlayer = updatedSession.loggedInPlayer
+        this.showInactiveCards = updatedSession.showInactiveCards
       }
     },
 
@@ -233,6 +253,11 @@
           player: this.playerParams,
           card: this.cardParams
         }
+      },
+
+      showActionButton: function () {
+        if (!this.session.loggedInPlayer) { return false }
+        return this.session.playable && !this.session.started
       },
 
       promptClass: function () {
@@ -253,22 +278,6 @@
         }
       },
 
-      sortedDisplayPlayerCards: function () {
-        if (!this.displayPlayer) { return [] }
-        return this.displayPlayer.cards.sort((a,b) => (a[this.sortGroupsBy] > b[this.sortGroupsBy]) ? 1 : -1)
-      },
-
-      cardGroups: function () {
-        return [...new Set(this.sortedDisplayPlayerCards.map(i => i[this.groupCardsBy]))].map(
-          title => {
-            return {
-              title: title,
-              cards: this.sortedDisplayPlayerCards.filter(i => i[this.groupCardsBy] === title).sort((a,b) => (a[this.sortCardsBy] > b[this.sortCardsBy]) ? 1 : -1)
-            }
-          }
-        )
-      },
-
       sortGroupsBy: function () {
         const map = {
           dealtDuringState: 'dealtAt',
@@ -279,9 +288,12 @@
         return map[this.groupCardsBy]
       },
 
-      showActionButton: function () {
-        if (!this.session.loggedInPlayer) { return false }
-        return this.session.playable && !this.session.started
+      activeCards: function () {
+        return this.groupedCards(this.displayPlayer.activeCards)
+      },
+
+      inactiveCards: function () {
+        return this.groupedCards(this.displayPlayer.inactiveCards)
       },
 
       displayingLoggedInPlayer: function () {
@@ -296,15 +308,29 @@
     },
 
     methods: {
-      setPlayerParams: function (player) {
-        this.playerParams = player
-      },
-
       isCurrentPlayer: function (player) {
         if (!this.session.started) { return false }
         if (this.session.completed) { return false }
         return player.id === this.session.currentPlayer.id
       },
+
+      // Player buttons
+
+      playerButtonClass: function (player) {
+        return {
+          'btn mr-2 mb-2 text-dark': true,
+          'btn-light': !player.winner,
+          'btn-warning': player.winner
+        }
+      },
+
+      playerButtonDisabled: function (player) {
+        if (!this.session.started) { return true }
+        if (!this.session.allowDisplayPlayerSwitching) { return true }
+        return this.displayPlayer && player.id === this.displayPlayer.id
+      },
+
+      // Card buttons
 
       cardClass: function (card) {
         const result = {
@@ -326,6 +352,8 @@
         return !(card.validAction && (this.isCurrentPlayer(this.session.loggedInPlayer) || card.playableOutOfTurn))
       },
 
+      // Player action buttons
+
       playerActionButtonClass: function (index) {
         let count = this.session.loggedInPlayer.possibleActions.length
         return {
@@ -343,18 +371,7 @@
         }
       },
 
-      playerButtonClass: function (player) {
-        return {
-          'btn': true,
-          'btn-light': !player.winner,
-          'btn-warning': player.winner
-        }
-      },
-
-      playerButtonDisabled: function (player) {
-        if (!this.session.started) { return true }
-        return this.displayPlayer && player.id === this.displayPlayer.id
-      },
+      // Card sorting and grouping
 
       changeCardSort: function () {
         const map = {
@@ -374,6 +391,29 @@
         }
         this.groupCardsBy = map[this.groupCardsBy]
       },
+
+      toggleInactiveCards: function () {
+        this.showInactiveCards = !this.showInactiveCards
+      },
+
+      // Card groups
+
+      groupedCards: function (cards) {
+        return [...new Set(this.sortedCards(cards).map(i => i[this.groupCardsBy]))].map(
+          title => {
+            return {
+              title: title,
+              cards: this.sortedCards(cards).filter(i => i[this.groupCardsBy] === title).sort((a,b) => (a[this.sortCardsBy] > b[this.sortCardsBy]) ? 1 : -1)
+            }
+          }
+        )
+      },
+
+      sortedCards: function (cards) {
+        return cards.sort((a,b) => (a[this.sortGroupsBy] > b[this.sortGroupsBy]) ? 1 : -1)
+      },
+
+      // Button click handlers
 
       handleCardClick: function (card) {
         if (this.session.loggedInPlayer.actionPhase === 'trade') {
@@ -398,6 +438,8 @@
         }
         this.playerAction(action)
       },
+
+      // Async backend interactions
 
       updateSession: async function () {
         this.awaitingSessionUpdate = true

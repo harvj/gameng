@@ -2,7 +2,7 @@ class GamesController < ApplicationController
   before_action :load_game, only: %i(show)
 
   def index
-    games = Game.all
+    games = Game.all.order(:name)
 
     @rep_games = Representers::Game.(games, scalar: true)
     respond_to do |format|

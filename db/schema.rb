@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_24_003823) do
+ActiveRecord::Schema.define(version: 2021_01_26_170947) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -39,6 +39,7 @@ ActiveRecord::Schema.define(version: 2021_01_24_003823) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "current_player_id"
     t.string "special_game_phase"
+    t.integer "special_game_phase_timer", default: 0
     t.index ["current_player_id"], name: "index_game_sessions_on_current_player_id"
     t.index ["game_id"], name: "index_game_sessions_on_game_id"
     t.index ["uid"], name: "index_game_sessions_on_uid", unique: true
