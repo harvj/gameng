@@ -2,7 +2,7 @@
   <div :id="`game-${game.key}`">
 
     <div class="d-flex flex-row justify-content-between mt-2">
-      <div class="p-2">
+      <div class="px-2 pt-2">
         <h2>{{ game.name }}</h2>
       </div>
       <div class="p-2">

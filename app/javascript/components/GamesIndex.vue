@@ -1,11 +1,9 @@
 <template>
-  <div id="games-index" class="p-2">
-    <h2>What are we playing?</h2>
-    <div v-for="game in games"
-      :key="game.key"
-    >
+  <div id="games-index" class="p-3">
+    <h6 class="px-1">What are we playing?</h6>
+    <h2 class="px-1 pt-2" v-for="game in games" :key="game.key">
       <a :href="game.uri">{{ game.name }}</a>
-    </div>
+    </h2>
   </div>
 </template>
 

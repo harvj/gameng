@@ -4,12 +4,12 @@
       :key='message.uid'
       :class='messageClass(message)'
     >
-      <div class="px-2">
-        <span v-html="message.content"></span>
+      <div class="mr-3">
+        <a :href="paths.gamesPath">Home</a>
       </div>
       <div v-if="loggedIn" class="d-flex px-2">
         <div class="mr-3">
-          <a :href="paths.gamesPath">Lobby</a>
+          <span v-html="message.content"></span>
         </div>
         <div>
           <a :href="paths.logoutPath" data-method="delete" rel="nofollow">Logout</a>
