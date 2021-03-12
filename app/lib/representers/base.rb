@@ -45,5 +45,17 @@ module Representers
     def scalar_only?
       options[:scalar] == true
     end
+
+    def image_file_path(game_key, image_name)
+      return unless game_key.present? && image_name.present?
+      file_name = "#{[game_key, image_name.parameterize].join('/')}.png"
+      return unless File.exist?(File.join(Rails.root, 'app/assets/', image_path(file_name)))
+      "/assets#{asset_path(file_name)}"
+    end
+
+    def initials(name)
+      return unless name.present?
+      name.split.map { |i| i[0] }.join
+    end
   end
 end

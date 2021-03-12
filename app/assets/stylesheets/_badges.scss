@@ -1,6 +1,24 @@
 @import 'variables';
 
 .badge {
+  &.bisque {
+    background-color: bisque;
+  }
+  &.brown {
+    color: $white;
+    background-color: $brown;
+  }
+  &.darkgreen {
+    background-color: darkgreen;
+  }
+  &.gold {
+    color: $black;
+    background-color: goldenrod;
+  }
+  &.green {
+    color: $white;
+    background-color: $green;
+  }
   &.magenta {
     color: $white;
     background-color: $magenta;
@@ -9,13 +27,7 @@
     color: $white;
     background-color: $orange;
   }
-  &.green {
-    color: $white;
-    background-color: $green;
-  }
-  &.brown {
-    color: $white;
-    background-color: $brown;
-  }
+
+
   &.white { background-color: $white; }
 }
