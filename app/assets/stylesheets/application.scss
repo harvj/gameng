@@ -7,3 +7,13 @@
   border-color: lighten($light-green, 5);
   color: $white;
 }
+
+#user-config {
+  a {
+    color: inherit;
+  }
+  a:hover {
+    color: $black;
+    background-color: inherit;
+  }
+}

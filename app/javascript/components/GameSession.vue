@@ -32,21 +32,35 @@
 
     <!-- Player Buttons -->
     <div class="d-flex flex-row flex-wrap p-2">
-      <button v-for="player in session.players"
-        :class="playerButtonClass(player)"
-        @click.prevent="handlePlayerClick(player)"
-        :disabled="playerButtonDisabled(player)"
-      >
-        <span v-if="player.turnOrder" class="badge badge-secondary mr-1">{{ player.turnOrder }}</span>
-        <i v-if="isCurrentPlayer(player)" class="fas fa-user-clock"></i>
-        <i v-if="player.winner" class="fas fa-trophy"></i>
-        {{ player.user.name }}
-        <span v-if="player.role">
-          <img v-if="player.role.imagePath" :src="player.role.imagePath" height="24"></img>
-          <span v-else :class="`badge ${player.role.color} mr-1`">{{ titleize(player.role.name)[0] }}</span>
-        </span>
-        <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
-      </button>
+      <div v-for="player in session.players">
+        <button
+          :class="playerButtonClass(player)"
+          @click.prevent="handlePlayerClick(player)"
+          :disabled="playerButtonDisabled(player)"
+        >
+          <div :class="playerButtonSubclass">
+            <span v-if="player.turnOrder" class="badge badge-secondary mr-1">{{ player.turnOrder }}</span>
+            <i v-if="isCurrentPlayer(player)" class="fas fa-user-clock"></i>
+            <i v-if="player.winner" class="fas fa-trophy"></i>
+            {{ player.user.name }}
+            <span v-if="player.role">
+              <img v-if="player.role.imagePath" :src="player.role.imagePath" height="24"></img>
+              <span v-else :class="`badge ${player.role.color} mr-1`">{{ titleize(player.role.name)[0] }}</span>
+            </span>
+            <span v-if="player.score" class="badge badge-dark mr-1">{{ player.score }}</span>
+          </div>
+          <div class="mt-1" :class="playerButtonSubclass">
+            <span v-for="badge in player.badges"
+              v-if="currentUser.config.showAllBadges || !badge.hideable"
+              :class="`badge mr-1 ${badge.color}`"
+            >
+              <i :class="`fas fa-${badge.icon_class}`"></i>
+              <span v-if="badge.symbol">{{ badge.symbol }}</span>
+              <span v-if="currentUser.config.showBadgeValues">{{ badge.value }}</span>
+            </span>
+          </div>
+        </button>
+      </div>
     </div>
 
     <!-- Score Form -->
@@ -247,7 +261,7 @@
     },
 
     computed: {
-      ...mapGetters(['token', 'paths']),
+      ...mapGetters(['token', 'paths', 'currentUser']),
 
       updateParams: function () {
         return {
@@ -309,7 +323,14 @@
       displayPlayerPossessive: function () {
         if (this.displayingLoggedInPlayer) { return "Your" }
         return `${this.displayPlayer.user.name}'s`
-      }
+      },
+
+      playerButtonSubclass: function () {
+        return {
+          'text-left': true,
+          'd-inline-block': !this.currentUser.config.showAllBadges
+        }
+      },
     },
 
     methods: {

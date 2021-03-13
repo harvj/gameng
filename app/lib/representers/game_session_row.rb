@@ -18,6 +18,7 @@ module Representers
         state: session.state,
         uid: session.uid,
         uri: game_session_path(session.uid),
+        waiting: session.waiting?,
         winnerImagePath: image_file_path(session.game_key, session.winner_role),
         winnerInitials: initials(session.winner_name)
       }

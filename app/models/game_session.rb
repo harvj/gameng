@@ -15,6 +15,8 @@ class GameSession < ApplicationRecord
   validates :uid, presence: true, uniqueness: true
   validates :state, presence: true
 
+  scope :completed, -> { where('completed_at IS NOT NULL') }
+
   def self.generate_uid
     Passphrase::Passphrase.new(number_of_words: 4).passphrase.tr(' ','-')
   end
