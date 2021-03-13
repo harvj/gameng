@@ -6,12 +6,16 @@ class GameSession < ApplicationRecord
   belongs_to :current_player, class_name: 'Player', optional: true
 
   has_many :players, -> { order('turn_order asc') }, dependent: :destroy
+  has_one :winner, -> { where(winner: true) }, class_name: 'Player'
+
   has_many :decks, class_name: 'SessionDeck', dependent: :destroy
   has_many :cards, class_name: 'SessionCard', dependent: :destroy
   has_many :frames, class_name: 'SessionFrame', dependent: :destroy
 
   validates :uid, presence: true, uniqueness: true
   validates :state, presence: true
+
+  scope :completed, -> { where('completed_at IS NOT NULL') }
 
   def self.generate_uid
     Passphrase::Passphrase.new(number_of_words: 4).passphrase.tr(' ','-')

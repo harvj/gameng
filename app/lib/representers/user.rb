@@ -3,7 +3,12 @@ module Representers
     def build_object(user)
       {
         name: user.name,
-        username: user.username
+        username: user.username,
+        configPath: user_config_path(user),
+        config: {
+          showAllBadges: user.config.show_all_badges?,
+          showBadgeValues: user.config.show_badge_values?
+        }
       }
     end
   end

@@ -16,8 +16,11 @@ module Representers
         playPath: play_player_path(player),
         playerPath: player_path(player)
       }
+
+
       return scalar if scalar_only?
 
+      scalar[:badges] = player.badges if player.respond_to? :badges
       scalar.merge(
         activeCards: Representers::SessionCard.(player.cards.active),
         inactiveCards: Representers::SessionCard.(player.cards.inactive),

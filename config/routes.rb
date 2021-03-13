@@ -12,6 +12,10 @@ Rails.application.routes.draw do
   resources :session_cards, only: %i(update) do
   end
 
+  resources :users, only: %i() do
+    resource :user_config, only: %i(update), as: :config, path: :config
+  end
+
   devise_for :users, controllers: { sessions: 'users/sessions' }
 
   devise_scope :user do

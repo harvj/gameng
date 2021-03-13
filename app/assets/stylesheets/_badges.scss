@@ -1,6 +1,24 @@
 @import 'variables';
 
 .badge {
+  &.bisque {
+    background-color: bisque;
+  }
+  &.brown {
+    color: $white;
+    background-color: $brown;
+  }
+  &.darkgreen {
+    background-color: darkgreen;
+  }
+  &.gold {
+    color: $black;
+    background-color: goldenrod;
+  }
+  &.green {
+    color: $white;
+    background-color: $green;
+  }
   &.magenta {
     color: $white;
     background-color: $magenta;
@@ -9,13 +27,35 @@
     color: $white;
     background-color: $orange;
   }
-  &.green {
+  &.red {
     color: $white;
-    background-color: $green;
+    background-color: $red;
   }
-  &.brown {
-    color: $white;
-    background-color: $brown;
+  &.white {
+    background-color: $white;
   }
-  &.white { background-color: $white; }
+
+
+  // -- Modern Art
+  &.lite-metal {
+    color: darken($yellow, 20);
+    background-color: lighten($yellow, 30);
+  }
+  &.yoko {
+    color: darken($light-green, 30);
+    background-color: lighten($light-green, 25);
+  }
+  &.cristin-p {
+    color: darken($red, 20);
+    background-color: lighten($red, 35);
+  }
+  &.karl-gitter {
+    color: darken($light-purple, 20);
+    background-color: lighten($light-purple, 10);
+  }
+  &.krypto {
+    color: darken($light-brown, 30);
+    background-color: lighten($light-brown, 20);
+  }
+
 }

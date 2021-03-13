@@ -21,6 +21,10 @@ const mutations = {
     state.paths = data.paths
     state.railsEnv = data.railsEnv
     state.token = data.token
+  },
+
+  updateCurrentUser (state, user) {
+    state.currentUser = user
   }
 }
 

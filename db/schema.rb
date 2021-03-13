@@ -10,10 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_26_170947) do
+ActiveRecord::Schema.define(version: 2021_03_13_223656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "badges", force: :cascade do |t|
+    t.string "name"
+    t.string "icon_class"
+    t.string "color"
+    t.bigint "game_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "symbol"
+    t.boolean "display_int", default: false
+    t.integer "sort_order"
+    t.boolean "hideable", default: true
+    t.index ["game_id"], name: "index_badges_on_game_id"
+  end
 
   create_table "cards", force: :cascade do |t|
     t.integer "game_id"
@@ -133,6 +147,28 @@ ActiveRecord::Schema.define(version: 2021_01_26_170947) do
     t.index ["previous_frame_id"], name: "index_session_frames_on_previous_frame_id"
     t.index ["state"], name: "index_session_frames_on_state"
     t.index ["subject_id", "subject_type"], name: "index_session_frames_on_subject_id_and_subject_type"
+  end
+
+  create_table "user_badges", force: :cascade do |t|
+    t.decimal "value"
+    t.bigint "as_of_session_id"
+    t.bigint "badge_id"
+    t.bigint "user_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.boolean "active", default: true
+    t.index ["as_of_session_id"], name: "index_user_badges_on_as_of_session_id"
+    t.index ["badge_id"], name: "index_user_badges_on_badge_id"
+    t.index ["user_id"], name: "index_user_badges_on_user_id"
+  end
+
+  create_table "user_configs", force: :cascade do |t|
+    t.boolean "show_badge_values", default: true
+    t.boolean "show_all_badges", default: true
+    t.bigint "user_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_user_configs_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|

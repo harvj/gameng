@@ -3,6 +3,7 @@ module Representers
     attr_reader :session
 
     def build_object(session)
+      @session = session
       scalar = {
         active: session.active?,
         allowDisplayPlayerSwitching: session.allow_display_player_switching?,
@@ -38,7 +39,7 @@ module Representers
           }
         end,
         game: Representers::Game.(session.game, scalar: true),
-        players: Representers::Player.(session.players)
+        players: Representers::Player.(players)
       )
 
       scalar.merge!(currentPlayerId: session.current_player.id, currentPlayerName: session.current_player.user.name) if session.current_player.present?
@@ -47,6 +48,29 @@ module Representers
       scalar.merge!(loggedInPlayer: Representers::Player.(logged_in_player)) if logged_in_player.present?
 
       scalar
+    end
+
+    def players
+      ::Player.find_by_sql(<<~SQL
+        SELECT players.*,
+          coalesce(json_agg(json_build_object(
+            'value', user_badges.value,
+            'color', badges.color,
+            'icon_class', badges.icon_class,
+            'symbol', badges.symbol,
+            'hideable', badges.hideable
+          ) ORDER BY badges.sort_order
+          ) FILTER (WHERE user_badges.id IS NOT NULL), '[]'
+          ) AS badges
+        FROM players
+        JOIN users ON users.id = players.user_id
+        LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id
+        LEFT OUTER JOIN badges ON badges.id = user_badges.badge_id
+        WHERE game_session_id = #{session.id}
+        GROUP BY players.id
+        ORDER BY players.turn_order
+      SQL
+      )
     end
   end
 end
