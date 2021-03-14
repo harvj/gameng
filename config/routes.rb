@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   resources :session_cards, only: %i(update) do
   end
 
-  resources :users, only: %i() do
+  resources :users, only: %i(show) do
     resource :user_config, only: %i(update), as: :config, path: :config
   end
 

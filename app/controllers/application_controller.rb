@@ -20,7 +20,7 @@ class ApplicationController < ActionController::Base
 
   def set_session_flash
     if current_user.present?
-      flash[:info] = "Logged in as #{current_user.username}" if current_user.present?
+      flash[:info] = "Logged in as <a href='#{user_path(current_user)}'>#{current_user.username}</a>" if current_user.present?
     else
       flash[:warning] = 'Not signed in.'
     end

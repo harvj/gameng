@@ -3,6 +3,7 @@ module Representers
     def build_object(user)
       {
         name: user.name,
+        uri: user_path(user),
         username: user.username,
         configPath: user_config_path(user),
         config: {

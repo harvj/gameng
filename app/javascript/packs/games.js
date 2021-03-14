@@ -14,6 +14,7 @@ import GamesIndex from '../components/GamesIndex.vue'
 import GameSession from '../components/GameSession.vue'
 import GameSessionRow from '../components/GameSessionRow.vue'
 import LoginForm from '../components/LoginForm.vue'
+import UserStats from '../components/UserStats.vue'
 
 document.addEventListener('DOMContentLoaded', () => {
   const games = new Vue({
@@ -25,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
       GamesIndex,
       GameSession,
       GameSessionRow,
-      LoginForm
+      LoginForm,
+      UserStats
     },
 
     store

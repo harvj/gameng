@@ -54,7 +54,7 @@ module Representers
       ::Player.find_by_sql(<<~SQL
         SELECT players.*,
           coalesce(json_agg(json_build_object(
-            'value', user_badges.value,
+            'value', (CASE WHEN badges.display_int THEN round(user_badges.value,0)::varchar ELSE user_badges.value::varchar END),
             'color', badges.color,
             'icon_class', badges.icon_class,
             'symbol', badges.symbol,

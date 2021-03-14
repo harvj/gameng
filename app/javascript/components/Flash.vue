@@ -5,7 +5,7 @@
       :class='messageClass(message)'
     >
       <div class="mr-3">
-        <a :href="paths.gamesPath">Home</a>
+        <a :href="paths.gamesPath">Lobby</a>
       </div>
       <div v-if="loggedIn" class="d-flex px-2">
         <div class="mr-3">
