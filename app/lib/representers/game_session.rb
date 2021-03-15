@@ -64,8 +64,8 @@ module Representers
           ) AS badges
         FROM players
         JOIN users ON users.id = players.user_id
-        LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id
-        LEFT OUTER JOIN badges ON badges.id = user_badges.badge_id
+        LEFT OUTER JOIN badges ON badges.game_id = #{session.game_id}
+        LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id AND badges.id = user_badges.badge_id
         WHERE game_session_id = #{session.id}
         GROUP BY players.id
         ORDER BY players.turn_order

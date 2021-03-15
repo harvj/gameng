@@ -5,8 +5,13 @@ class User < ApplicationRecord
   has_one :user_config
 
   validates :username, uniqueness: true
+  validates :name, uniqueness: true
 
   def config
     user_config
+  end
+
+  def to_param
+    username
   end
 end
