@@ -21,12 +21,17 @@ module Games
       return if active.present? && active.as_of_session == last_session
 
       players = non_winners_from_date(last_session.completed_at)
+      stats = Query::Players.(
+        :score_stats,
+        game_id: game.id
+      ).group_by(&:player_count)
+
       results = {}
 
       players.group_by { |player| player.username }.each do |username, sessions|
         stddevs = sessions.map do |session|
-          diff = session.score - score_stats(session.player_count).avg
-          diff.to_f / score_stats(session.player_count).stddev
+          diff = session.score - stats[session.player_count].first.avg
+          diff.to_f / stats[session.player_count].first.stddev
         end
         results[username] = stddevs.sum / stddevs.length
       end
@@ -77,22 +82,6 @@ module Games
         value: value,
         as_of_session: last_session
       )
-    end
-
-    def score_stats(player_count)
-      return @score_stats if @score_stats.present?
-      @score_stats = Player.find_by_sql(<<~SQL
-        SELECT
-          avg(players.score)::INTEGER,
-          stddev(players.score)::INTEGER
-        FROM players
-        JOIN game_sessions ON game_sessions.id = game_session_id
-        JOIN games ON games.id = game_sessions.game_id
-        WHERE games.id = #{game.id}
-        AND (SELECT count(*) FROM players p WHERE p.game_session_id = players.game_session_id) = #{player_count}
-        AND players.score IS NOT NULL
-      SQL
-      ).first
     end
 
     def non_winners_from_date(date)

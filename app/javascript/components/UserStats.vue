@@ -1,7 +1,14 @@
 <template>
   <div class="p-2">
     <div class="p-2 container" v-for="count in Object.keys(userStats).reverse()">
-      <h3>{{ count }} players</h3>
+      <h3>
+        {{ count }} players
+      </h3>
+      <div v-if="byPlayerCount(count)" class="pb-2 text-muted">
+        <span>{{ byPlayerCount(count).game_count }} games </span>
+        <span>(average: {{ byPlayerCount(count).avg }}, </span>
+        <span>std dev: {{ byPlayerCount(count).stddev }})</span>
+      </div>
       <div class="row px-1">
         <div class="col-sm"></div>
         <div v-for="name in columnNames" class="col-sm">
@@ -28,6 +35,7 @@
     name: 'user-stats',
 
     props: {
+      scoreStats: { type: Array, required: true },
       userStats: { type: Object, required: true }
     },
 
@@ -62,6 +70,10 @@
 
       reSort: function (count, name) {
         this.sortBy[count] = name
+      },
+
+      byPlayerCount: function (count) {
+        return this.scoreStats.find(i => i.player_count == count)
       }
     }
   }

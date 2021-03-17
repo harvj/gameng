@@ -3,7 +3,8 @@ class UsersController < ApplicationController
 
   def show
     game = Game.find_by(key: 'modern_art')
-    @user_stats = Representers::UserStats.(game)
+    @user_stats = Query::Players.(:user_stats, game_id: game.id).group_by(&:player_count)
+    @score_stats = Query::Players.(:score_stats, game_id: game.id)
   end
 
   private
