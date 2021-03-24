@@ -53,19 +53,25 @@ module Representers
     def players
       ::Player.find_by_sql(<<~SQL
         SELECT players.*,
+          min(last_win.date) as last_win_date,
           coalesce(json_agg(json_build_object(
             'value', (CASE WHEN badges.display_int THEN round(user_badges.value,0)::varchar ELSE user_badges.value::varchar END),
             'color', badges.color,
             'icon_class', badges.icon_class,
             'symbol', badges.symbol,
             'hideable', badges.hideable
-          ) ORDER BY badges.sort_order
-          ) FILTER (WHERE user_badges.id IS NOT NULL), '[]'
+            ) ORDER BY badges.sort_order
+            ) FILTER (WHERE user_badges.id IS NOT NULL), '[]'
           ) AS badges
         FROM players
         JOIN users ON users.id = players.user_id
+        LEFT OUTER JOIN ( select users.id, date(players.updated_at)
+            from users
+            join players on players.id = (select players.id from players where players.user_id = users.id and winner is true order by created_at desc limit 1)
+            order by players.updated_at desc
+          ) as last_win on last_win.id = users.id
         LEFT OUTER JOIN badges ON badges.game_id = #{session.game_id}
-        LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id AND badges.id = user_badges.badge_id
+        LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id AND badges.id = user_badges.badge_id AND user_badges.active = TRUE
         WHERE game_session_id = #{session.id}
         GROUP BY players.id
         ORDER BY players.turn_order

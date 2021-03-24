@@ -16,6 +16,8 @@ class GameSession < ApplicationRecord
   validates :state, presence: true
 
   scope :completed, -> { where('completed_at IS NOT NULL') }
+  scope :active, -> { where('completed_at IS NULL and state <> ?', 'waiting') }
+  scope :incomplete, -> { where('completed_at IS NULL') }
 
   def self.generate_uid
     Passphrase::Passphrase.new(number_of_words: 4).passphrase.tr(' ','-')

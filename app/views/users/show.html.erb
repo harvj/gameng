@@ -1,5 +1,9 @@
-<user-stats
-  :user-stats="<%= @user_stats.to_json %>"
+<user
+  :active-sessions="<%= @active_sessions.to_json %>"
+  :game-stats="<%= @game_stats.to_json %>"
+  :single-double-stats="<%= @single_double_stats.to_json %>"
   :score-stats="<%= @score_stats.to_json %>"
+  :turn-order-stats="<%= @turn_order_stats.to_json %>"
+  :user-stats="<%= @user_stats.to_json %>"
 >
-</user-stats>
+</user>

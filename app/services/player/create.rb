@@ -4,7 +4,8 @@ class Player::Create < Services::Create
     @params = params
     assign_role
     super(user, params.merge(
-      action_phase: 'inactive'
+      action_phase: 'inactive',
+      game_id: params[:session].game_id
     ))
   end
 

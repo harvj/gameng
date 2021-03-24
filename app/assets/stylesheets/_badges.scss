@@ -34,6 +34,10 @@
   &.white {
     background-color: $white;
   }
+  &.black {
+    color: $white;
+    background-color: $black;
+  }
 
 
   // -- Modern Art

@@ -8,27 +8,24 @@ module Games
     end
 
     def call
-      assign_dog_man
-      assign_card_badges
-      assign_win_streak
+      Game.transaction do
+        assign_dog_man
+        assign_card_badges
+        assign_win_streak
+      end
     end
 
     attr_reader :game, :last_session
 
     def assign_dog_man
-      dog_badge = game.badges.find_by(name: 'dog_man')
-      active = dog_badge.user_badges.active
-      return if active.present? && active.as_of_session == last_session
-
-      players = non_winners_from_date(last_session.completed_at)
-      stats = Query::Players.(
-        :score_stats,
-        game_id: game.id
-      ).group_by(&:player_count)
+      badge = game.badges.find_by(name: 'dog_man')
+      return if already_assigned?(badge)
 
       results = {}
+      players = Query::Players.(:non_winners_from_date, game_id: game.id, date: last_session.completed_at).group_by(&:username)
+      stats   = Query::Players.(:score_stats, game_id: game.id).group_by(&:player_count)
 
-      players.group_by { |player| player.username }.each do |username, sessions|
+      players.each do |username, sessions|
         stddevs = sessions.map do |session|
           diff = session.score - stats[session.player_count].first.avg
           diff.to_f / stats[session.player_count].first.stddev
@@ -38,13 +35,7 @@ module Games
 
       dog_user, dog_score = results.min_by {|name, score| score}
 
-      active.update_attribute(active: false) if active.present?
-      UserBadge.create(
-        badge: dog_badge,
-        user: User.find_by(username: dog_user),
-        value: dog_score.round(2).to_f,
-        as_of_session: last_session
-      )
+      create_user_badge(badge, dog_user, dog_score.round(2).to_f)
     end
 
     def assign_card_badges
@@ -52,88 +43,60 @@ module Games
         %i(up down).each do |direction|
           badge = game.badges.find_by(name: "#{card_type}_#{direction}")
           next if badge.nil?
-          active = badge.user_badges.active
-          next if active.present? && active.as_of_session == last_session
+          next if already_assigned?(badge)
 
-          active.update_attribute(active: false) if active.present?
-          which_one = direction == 'up' ? 'last' : 'first'
-          badge_winner = card_stats.sort_by{|p| p.send("#{card_type}_crown")}.send(which_one)
-          UserBadge.create(
-            badge: badge,
-            user: User.find_by(username: badge_winner.username),
-            value: badge_winner.send("#{card_type}_crown").round(1).to_f,
-            as_of_session: last_session
-          )
+          which_one = direction == :up ? 'last' : 'first'
+          stats = Query::Players.(:modern_art_card_stats)
+          recipient = stats.sort_by{|p| p.send("#{card_type}_crown")}.send(which_one)
+
+          create_user_badge(badge, recipient.username, recipient.send("#{card_type}_crown").round(1).to_f)
         end
+      end
+
+      %i(sd_played_avg sd_played_on_avg).each do |badge_name|
+        badge = game.badges.find_by(name: badge_name)
+        next if badge.nil?
+        next if already_assigned?(badge)
+
+        stats = Query::Players.(:single_double_stats)
+        recipient = stats.sort_by{ |row| row.send(badge_name) }.last
+        create_user_badge(badge, recipient.username, recipient.send(badge_name).round(1).to_f)
       end
     end
 
     def assign_win_streak
       badge = game.badges.find_by(name: 'win_streak')
-      active = badge.user_badges.active
-      return if active.present? && active.as_of_session == last_session
+      return if already_assigned?(badge)
+      create_user_badge(badge, last_session.winner.user.username, Query::Players.(:current_win_streak).streak)
+    end
 
-      active.update_attribute(active: false) if active.present?
-      badge_winner = last_session.winner.user
-      value = active.present? && badge_winner == active.user ? active.value + 1 : 1
+    # --- Util
+
+    def already_assigned?(badge)
+      active = badge.user_badges.active
+      if active.present? && active.as_of_session == last_session
+        log("Already an active #{badge.name} badge as of session #{last_session.id}")
+        true
+      else
+        deactivate(badge, active) if active.present?
+        false
+      end
+    end
+
+    def deactivate(badge, active)
+      log("Deactivating #{badge.name} badge #{active.id}")
+      active.update(active: false)
+    end
+
+    def create_user_badge(badge, username, value)
+      log("Creating #{badge.name} badge for #{username}: #{value}")
       UserBadge.create(
         badge: badge,
-        user: User.find_by(username: badge_winner.username),
+        user: User.find_by(username: username),
         value: value,
         as_of_session: last_session
       )
     end
 
-    def non_winners_from_date(date)
-      Player.find_by_sql(<<~SQL
-        SELECT
-          users.username,
-          players.score,
-          (SELECT count(*) FROM players WHERE players.game_session_id = game_sessions.id) AS player_count
-        FROM game_sessions
-        JOIN players ON players.game_session_id = game_sessions.id
-        JOIN users ON players.user_id = users.id
-        WHERE timezone('US/Pacific', completed_at AT TIME ZONE 'utc')::DATE = '#{date.strftime('%Y-%m-%d')}'
-        AND users.id NOT IN
-          ( SELECT DISTINCT user_id FROM game_sessions
-            JOIN players ON players.game_session_id = game_sessions.id
-            WHERE timezone('US/Pacific', completed_at AT TIME ZONE 'utc')::DATE = '#{date.strftime('%Y-%m-%d')}'
-            AND winner IS TRUE
-          )
-      SQL
-      )
-    end
-
-    def card_stats
-      return @card_stats if @card_stats.present?
-      @card_stats = Player.find_by_sql(<<~SQL
-        SELECT * FROM ( SELECT
-          users.username,
-          count(distinct players.id) as games_played,
-          count(session_frames.id) as cards_played,
-          (count(CASE WHEN cards.name = 'lite_metal' THEN 1 END)::decimal / count(distinct players.id)) as lite_metal_crown,
-          (count(CASE WHEN cards.name = 'yoko' THEN 1 END)::decimal / count(distinct players.id)) as yoko_crown,
-          (count(CASE WHEN cards.name = 'cristin_p' THEN 1 END)::decimal / count(distinct players.id)) as cristin_p_crown,
-          (count(CASE WHEN cards.name = 'karl_gitter' THEN 1 END)::decimal / count(distinct players.id)) as gitter_crown,
-          (count(CASE WHEN cards.name = 'krypto' THEN 1 END)::decimal / count(distinct players.id)) as krypto_crown,
-          (count(CASE WHEN cards.value = 'fixed' THEN 1 END)::decimal / count(distinct players.id)) as fixed_crown,
-          (count(CASE WHEN cards.value = 'double' THEN 1 END)::decimal / count(distinct players.id)) as double_crown,
-          (count(CASE WHEN cards.value = 'open' THEN 1 END)::decimal / count(distinct players.id)) as open_crown,
-          (count(CASE WHEN cards.value = 'sealed' THEN 1 END)::decimal / count(distinct players.id)) as sealed_crown,
-          (count(CASE WHEN cards.value = 'once_around' THEN 1 END)::decimal / count(distinct players.id)) as once_around_crown
-        FROM players
-        JOIN users ON users.id = players.user_id
-        JOIN session_frames ON players.game_session_id = session_frames.game_session_id AND session_frames.action = 'card_played'
-        JOIN game_sessions ON players.game_session_id = game_sessions.id
-        JOIN games ON game_sessions.game_id = games.id
-        JOIN session_cards ON session_frames.subject_id = session_cards.id AND session_frames.acting_player_id = players.id
-        JOIN cards ON cards.id = session_cards.card_id
-        WHERE games.id = 1
-        AND game_sessions.completed_at > '2021-01-02'
-        GROUP BY users.id ) AS x
-        WHERE x.games_played > 5
-      SQL
-      )
-    end
   end
 end

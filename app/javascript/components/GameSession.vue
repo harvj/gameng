@@ -58,6 +58,9 @@
               <span v-if="badge.symbol">{{ badge.symbol }}</span>
               <span v-if="currentUser.config.showBadgeValues">{{ badge.value }}</span>
             </span>
+            <span v-if="currentUser.config.showAllBadges">
+              <span v-if="player.lastWinDate" class="badge mr-1 black">{{ player.lastWinDate }}</span>
+            </span>
           </div>
         </button>
       </div>

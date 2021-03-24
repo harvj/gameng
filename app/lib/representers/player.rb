@@ -21,6 +21,9 @@ module Representers
       return scalar if scalar_only?
 
       scalar[:badges] = player.badges if player.respond_to? :badges
+      if player.respond_to?(:last_win_date)
+        scalar[:lastWinDate] = player.last_win_date&.strftime("%b %e")
+      end
       scalar.merge(
         activeCards: Representers::SessionCard.(player.cards.active),
         inactiveCards: Representers::SessionCard.(player.cards.inactive),
