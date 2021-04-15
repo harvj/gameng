@@ -65,10 +65,18 @@ module Representers
           ) AS badges
         FROM players
         JOIN users ON users.id = players.user_id
-        LEFT OUTER JOIN ( select users.id, date(players.updated_at)
+        LEFT OUTER JOIN ( select users.id, date(game_sessions.started_at at time zone 'utc' at time zone 'america/los_angeles')
             from users
-            join players on players.id = (select players.id from players where players.user_id = users.id and winner is true order by created_at desc limit 1)
-            order by players.updated_at desc
+            join players on players.id = (
+              select players.id from players
+              join game_sessions on game_sessions.id = players.game_session_id
+              where players.user_id = users.id
+              and winner is true
+              and game_sessions.game_id = #{session.game_id}
+              order by players.created_at desc limit 1
+            )
+            join game_sessions on game_sessions.id = players.game_session_id
+            order by game_sessions.started_at desc
           ) as last_win on last_win.id = users.id
         LEFT OUTER JOIN badges ON badges.game_id = #{session.game_id}
         LEFT OUTER JOIN user_badges ON users.id = user_badges.user_id AND badges.id = user_badges.badge_id AND user_badges.active = TRUE

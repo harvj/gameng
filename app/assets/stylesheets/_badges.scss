@@ -1,15 +1,20 @@
 @import 'variables';
 
 .badge {
+  &.red {
+    color: $white;
+    background-color: $red;
+  }
+  &.crimson {
+    color: $white;
+    background-color: crimson;
+  }
+  &.orange {
+    color: $white;
+    background-color: $orange;
+  }
   &.bisque {
     background-color: bisque;
-  }
-  &.brown {
-    color: $white;
-    background-color: $brown;
-  }
-  &.darkgreen {
-    background-color: darkgreen;
   }
   &.gold {
     color: $black;
@@ -19,26 +24,54 @@
     color: $white;
     background-color: $green;
   }
+  &.darkgreen {
+    background-color: darkgreen;
+  }
   &.magenta {
     color: $white;
     background-color: $magenta;
   }
-  &.orange {
-    color: $white;
-    background-color: $orange;
-  }
-  &.red {
-    color: $white;
-    background-color: $red;
-  }
   &.white {
     background-color: $white;
+  }
+  &.brown {
+    color: $white;
+    background-color: $brown;
   }
   &.black {
     color: $white;
     background-color: $black;
   }
 
+  // -- Green to red gradient
+  &.green1 {
+    color: $white;
+    background-color: #69B34C;
+  }
+  &.green2 {
+    color: $white;
+    background-color: #ACB334;
+  }
+  &.yellow1 {
+    color: $white;
+    background-color: #C9A036;
+  }
+  &.yellow2 {
+    color: $white;
+    background-color: #FAB733;
+  }
+  &.orange1 {
+    color: $white;
+    background-color: #FF8E15;
+  }
+  &.orange2 {
+    color: $white;
+    background-color: #FF4E11;
+  }
+  &.red1 {
+    color: $white;
+    background-color: #FF0D0D;
+  }
 
   // -- Modern Art
   &.lite-metal {

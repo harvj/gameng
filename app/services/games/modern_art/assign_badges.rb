@@ -53,14 +53,15 @@ module Games
         end
       end
 
-      %i(sd_played_avg sd_played_on_avg).each do |badge_name|
+      %i(sd_ratio_first sd_ratio_last).each do |badge_name|
         badge = game.badges.find_by(name: badge_name)
         next if badge.nil?
         next if already_assigned?(badge)
 
+        which_one = badge_name.to_s.split('_').last
         stats = Query::Players.(:single_double_stats)
-        recipient = stats.sort_by{ |row| row.send(badge_name) }.last
-        create_user_badge(badge, recipient.username, recipient.send(badge_name).round(1).to_f)
+        recipient = stats.sort_by{ |row| -row.sd_ratio }.send(which_one)
+        create_user_badge(badge, recipient.username, recipient.sd_ratio)
       end
     end
 

@@ -119,7 +119,7 @@
       },
 
       singleDoubleColumnNames: function () {
-        return ['username', 'games', 'sd_played_avg', 'sd_played_count', 'sd_played_on_avg', 'sd_played_on_count']
+        return ['username', 'games', 'sd_played_avg', 'sd_played_count', 'sd_played_on_avg', 'sd_played_on_count', 'sd_ratio']
       },
 
       sdSortedStats: function () {

@@ -36,7 +36,6 @@
         <button
           :class="playerButtonClass(player)"
           @click.prevent="handlePlayerClick(player)"
-          :disabled="playerButtonDisabled(player)"
         >
           <div :class="playerButtonSubclass">
             <span v-if="player.turnOrder" class="badge badge-secondary mr-1">{{ player.turnOrder }}</span>
@@ -59,7 +58,7 @@
               <span v-if="currentUser.config.showBadgeValues">{{ badge.value }}</span>
             </span>
             <span v-if="currentUser.config.showAllBadges">
-              <span v-if="player.lastWinDate" class="badge mr-1 black">{{ player.lastWinDate }}</span>
+              <span v-if="player.lastWinDate" :class="`badge mr-1 ${player.lastWinDateClass}`">{{ player.lastWinDate }}</span>
             </span>
           </div>
         </button>
@@ -456,7 +455,9 @@
       },
 
       handlePlayerClick: function (player) {
-        if (this.session.loggedInPlayer && this.session.loggedInPlayer.actionPhase === 'trade') {
+        if (this.playerButtonDisabled(player)) {
+          return
+        } else if (this.session.loggedInPlayer && this.session.loggedInPlayer.actionPhase === 'trade') {
           this.playerParams = player
         } else {
           this.displayPlayer = player

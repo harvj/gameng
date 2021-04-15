@@ -95,7 +95,8 @@ module Query
 
         select id, username, sd_played_on_count, sd_played_count, games,
           round(sd_played_on_count::decimal / NULLIF(games, 0), 2) as sd_played_on_avg,
-          round(sd_played_count::decimal / NULLIF(games, 0), 2) as sd_played_avg
+          round(sd_played_count::decimal / NULLIF(games, 0), 2) as sd_played_avg,
+          round(round(sd_played_count::decimal / NULLIF(games, 0), 2) / round(sd_played_on_count::decimal / NULLIF(games, 0), 2), 2) as sd_ratio
         FROM (
           select users.id, users.username, a.sd_played_on_count, b.sd_played_count,
           (select count(*) from players where players.game_session_id >= 60 and players.user_id = users.id and players.game_id = 1) as games

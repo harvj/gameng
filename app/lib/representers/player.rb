@@ -23,6 +23,7 @@ module Representers
       scalar[:badges] = player.badges if player.respond_to? :badges
       if player.respond_to?(:last_win_date)
         scalar[:lastWinDate] = player.last_win_date&.strftime("%b %e")
+        scalar[:lastWinDateClass] = last_win_date_class(player.last_win_date)
       end
       scalar.merge(
         activeCards: Representers::SessionCard.(player.cards.active),
@@ -31,5 +32,27 @@ module Representers
         possibleActions: player.possible_actions,
       )
     end
+
+    private
+
+    def last_win_date_class(date)
+      return if date.nil?
+      if date > 7.days.ago
+        'green1'
+      elsif date > 21.days.ago
+        'green2'
+      elsif date > 35.days.ago
+        'yellow1'
+      elsif date > 49.days.ago
+        'yellow2'
+      elsif date > 63.days.ago
+        'orange1'
+      elsif date > 77.days.ago
+        'orange2'
+      else
+        'red1'
+      end
+    end
   end
 end
+
